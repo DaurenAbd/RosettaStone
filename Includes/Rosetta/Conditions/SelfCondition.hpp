@@ -7,13 +7,13 @@
 #define ROSETTASTONE_SELF_CONDITION_HPP
 
 #include <Rosetta/Enums/CardEnums.hpp>
-#include <Rosetta/Enums/GameEnums.hpp>
+#include <Rosetta/Enums/TaskEnums.hpp>
 
 #include <functional>
 
 namespace RosettaStone
 {
-class Entity;
+class Playable;
 
 //!
 //! \brief SelfCondition class.
@@ -25,7 +25,12 @@ class SelfCondition
  public:
     //! Constructs task with given \p func.
     //! \param func The function to check condition.
-    explicit SelfCondition(std::function<bool(Entity*)> func);
+    explicit SelfCondition(std::function<bool(Playable*)> func);
+
+    //! SelfCondition wrapper for checking the hero power equals \p cardID.
+    //! \param cardID The card ID of hero power.
+    //! \return Generated SelfCondition for intended purpose.
+    static SelfCondition IsHeroPowerCard(const std::string& cardID);
 
     //! SelfCondition wrapper for checking the entity is destroyed.
     //! \return Generated SelfCondition for intended purpose.
@@ -62,9 +67,18 @@ class SelfCondition
     //! \return Generated SelfCondition for intended purpose.
     static SelfCondition IsControllingRace(Race race);
 
+    //! SelfCondition wrapper for checking the secret exists
+    //! in the owner's secret zone.
+    //! \return Generated SelfCondition for intended purpose.
+    static SelfCondition IsControllingSecret();
+
     //! SelfCondition wrapper for checking the entity is minion.
     //! \return Generated SelfCondition for intended purpose.
     static SelfCondition IsMinion();
+
+    //! SelfCondition wrapper for checking the entity is spell.
+    //! \return Generated SelfCondition for intended purpose.
+    static SelfCondition IsSpell();
 
     //! SelfCondition wrapper for checking the entity is secret.
     //! \return Generated SelfCondition for intended purpose.
@@ -78,7 +92,12 @@ class SelfCondition
     //! \return Generated SelfCondition for intended purpose.
     static SelfCondition HasMinionInHand();
 
-    //! SelfCondition wrapper for checking the number of minion that played this turn.
+    //! SelfCondition wrapper for checking the card has overload.
+    //! \return Generated SelfCondition for intended purpose.
+    static SelfCondition IsOverloadCard();
+
+    //! SelfCondition wrapper for checking the number of minion
+    //! that played this turn.
     //! \param num The number of minion for checking.
     //! \return Generated SelfCondition for intended purpose.
     static SelfCondition MinionsPlayedThisTurn(int num);
@@ -94,16 +113,33 @@ class SelfCondition
 
     //! SelfCondition wrapper for checking the name of entity equals \p name.
     //! \param name The name of card to check condition.
-    //! \param isEqual The flag to indicate the condition for equality.
+    //! \param isEqual The flag to indicate that the condition for equality.
+    //! \return Generated SelfCondition for intended purpose.
     static SelfCondition IsName(const std::string& name, bool isEqual = true);
 
+    //! SelfCondition wrapper for checking num in taskStack satisfy condition
+    //! with \p value and \p relaSign.
+    //! \param value The value to check condition.
+    //! \param relaSign The comparer to check condition.
+    //! \param index If index is 0, use num; If index is 1, use num1.
+    //! \return Generated SelfCondition for intended purpose.
+    static SelfCondition IsStackNum(int value, RelaSign relaSign = RelaSign::EQ,
+                                    int index = 0);
+
+    //! SelfCondition wrapper for checking the health that satisfies
+    //! condition with \p value and \p relaSign.
+    //! \param value The value to check condition.
+    //! \param relaSign The comparer to check condition.
+    //! \return Generated SelfCondition for intended purpose.
+    static SelfCondition IsHealth(int value, RelaSign relaSign);
+
     //! Evaluates condition using checking function.
-    //! \param entity The owner entity.
+    //! \param owner The owner entity.
     //! \return true if the condition is satisfied, false otherwise.
-    bool Evaluate(Entity* entity) const;
+    bool Evaluate(Playable* owner) const;
 
  private:
-    std::function<bool(Entity*)> m_func;
+    std::function<bool(Playable*)> m_func;
 };
 }  // namespace RosettaStone
 

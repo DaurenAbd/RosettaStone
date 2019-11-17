@@ -16,25 +16,22 @@ FlagTask::FlagTask(bool flag, std::vector<ITask*> toDoTasks)
     // Do nothing
 }
 
-TaskID FlagTask::GetTaskID() const
+TaskStatus FlagTask::Impl(Player* player)
 {
-    return TaskID::FLAG;
-}
-
-TaskStatus FlagTask::Impl(Player& player)
-{
-    if (player.GetGame()->taskStack.flag != m_flag)
+    if (player->game->taskStack.flag != m_flag)
     {
         return TaskStatus::COMPLETE;
     }
 
     for (auto& task : m_toDoTasks)
     {
-        task->SetPlayer(&player);
-        task->SetSource(player.GetGame()->taskStack.source);
-        task->SetTarget(player.GetGame()->taskStack.target);
+        ITask* clonedTask = task->Clone();
 
-        task->Run();
+        clonedTask->SetPlayer(player);
+        clonedTask->SetSource(player->game->taskStack.source);
+        clonedTask->SetTarget(player->game->taskStack.target);
+
+        clonedTask->Run();
     }
 
     return TaskStatus::COMPLETE;

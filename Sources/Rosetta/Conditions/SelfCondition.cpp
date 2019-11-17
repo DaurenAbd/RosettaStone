@@ -5,41 +5,51 @@
 
 #include <Rosetta/Conditions/SelfCondition.hpp>
 #include <Rosetta/Games/Game.hpp>
+#include <Rosetta/Zones/HandZone.hpp>
+#include <Rosetta/Zones/FieldZone.hpp>
+#include <Rosetta/Zones/SecretZone.hpp>
 
 #include <string>
 #include <utility>
 
 namespace RosettaStone
 {
-SelfCondition::SelfCondition(std::function<bool(Entity*)> func)
+SelfCondition::SelfCondition(std::function<bool(Playable*)> func)
     : m_func(std::move(func))
 {
     // Do nothing
 }
 
+SelfCondition SelfCondition::IsHeroPowerCard(const std::string& cardID)
+{
+    return SelfCondition([=](Playable* playable) -> bool {
+        return playable->player->GetHero()->heroPower->card->id == cardID;
+    });
+}
+
 SelfCondition SelfCondition::IsDead()
 {
     return SelfCondition(
-        [=](Entity* entity) -> bool { return entity->isDestroyed; });
+        [=](Playable* playable) -> bool { return playable->isDestroyed; });
 }
 
 SelfCondition SelfCondition::IsNotDead()
 {
     return SelfCondition(
-        [=](Entity* entity) -> bool { return !entity->isDestroyed; });
+        [=](Playable* playable) -> bool { return !playable->isDestroyed; });
 }
 
 SelfCondition SelfCondition::IsFieldFull()
 {
-    return SelfCondition([=](Entity* entity) -> bool {
-        return entity->owner->GetFieldZone().IsFull();
+    return SelfCondition([=](Playable* playable) -> bool {
+        return playable->player->GetFieldZone()->IsFull();
     });
 }
 
 SelfCondition SelfCondition::IsDamaged()
 {
-    return SelfCondition([=](Entity* entity) -> bool {
-        const auto character = dynamic_cast<Character*>(entity);
+    return SelfCondition([=](Playable* playable) -> bool {
+        const auto character = dynamic_cast<Character*>(playable);
         if (!character)
         {
             return false;
@@ -51,8 +61,8 @@ SelfCondition SelfCondition::IsDamaged()
 
 SelfCondition SelfCondition::IsUndamaged()
 {
-    return SelfCondition([=](Entity* entity) -> bool {
-        const auto character = dynamic_cast<Character*>(entity);
+    return SelfCondition([=](Playable* playable) -> bool {
+        const auto character = dynamic_cast<Character*>(playable);
         if (!character)
         {
             return false;
@@ -64,22 +74,22 @@ SelfCondition SelfCondition::IsUndamaged()
 
 SelfCondition SelfCondition::IsWeaponEquipped()
 {
-    return SelfCondition([=](Entity* entity) -> bool {
-        return entity->owner->GetHero()->HasWeapon();
+    return SelfCondition([=](Playable* playable) -> bool {
+        return playable->player->GetHero()->HasWeapon();
     });
 }
 
 SelfCondition SelfCondition::IsRace(Race race)
 {
-    return SelfCondition([=](Entity* entity) -> bool {
-        return entity->card->GetRace() == race;
+    return SelfCondition([=](Playable* playable) -> bool {
+        return playable->card->GetRace() == race;
     });
 }
 
 SelfCondition SelfCondition::IsControllingRace(Race race)
 {
-    return SelfCondition([=](Entity* entity) -> bool {
-        for (auto& minion : entity->owner->GetFieldZone().GetAll())
+    return SelfCondition([=](Playable* playable) -> bool {
+        for (auto& minion : playable->player->GetFieldZone()->GetAll())
         {
             if (minion->card->GetRace() == race)
             {
@@ -91,25 +101,39 @@ SelfCondition SelfCondition::IsControllingRace(Race race)
     });
 }
 
+SelfCondition SelfCondition::IsControllingSecret()
+{
+    return SelfCondition([=](Playable* playable) -> bool {
+        return !playable->player->GetSecretZone()->IsEmpty();
+    });
+}
+
 SelfCondition SelfCondition::IsMinion()
 {
-    return SelfCondition([=](Entity* entity) -> bool {
-        return dynamic_cast<Minion*>(entity) != nullptr;
+    return SelfCondition([=](Playable* playable) -> bool {
+        return dynamic_cast<Minion*>(playable) != nullptr;
+    });
+}
+
+SelfCondition SelfCondition::IsSpell()
+{
+    return SelfCondition([=](Playable* playable) -> bool {
+        return dynamic_cast<Spell*>(playable) != nullptr;
     });
 }
 
 SelfCondition SelfCondition::IsSecret()
 {
-    return SelfCondition([=](Entity* entity) -> bool {
-        return dynamic_cast<Spell*>(entity) != nullptr &&
-               entity->GetGameTag(GameTag::SECRET) == 1;
+    return SelfCondition([=](Playable* playable) -> bool {
+        return dynamic_cast<Spell*>(playable) != nullptr &&
+               playable->GetGameTag(GameTag::SECRET) == 1;
     });
 }
 
 SelfCondition SelfCondition::IsFrozen()
 {
-    return SelfCondition([=](Entity* entity) -> bool {
-        const auto character = dynamic_cast<Character*>(entity);
+    return SelfCondition([=](Playable* playable) -> bool {
+        const auto character = dynamic_cast<Character*>(playable);
         if (!character)
         {
             return false;
@@ -121,8 +145,8 @@ SelfCondition SelfCondition::IsFrozen()
 
 SelfCondition SelfCondition::HasMinionInHand()
 {
-    return SelfCondition([=](Entity* entity) -> bool {
-        for (auto& card : entity->owner->GetHandZone().GetAll())
+    return SelfCondition([=](Playable* playable) -> bool {
+        for (auto& card : playable->player->GetHandZone()->GetAll())
         {
             if (dynamic_cast<Minion*>(card) != nullptr)
             {
@@ -134,33 +158,74 @@ SelfCondition SelfCondition::HasMinionInHand()
     });
 }
 
+SelfCondition SelfCondition::IsOverloadCard()
+{
+    return SelfCondition([=](Playable* playable) -> bool {
+        if (playable->GetGameTag(GameTag::OVERLOAD) >= 1)
+        {
+            return true;
+        }
+
+        return false;
+    });
+}
+
 SelfCondition SelfCondition::MinionsPlayedThisTurn(int num)
 {
-    return SelfCondition([=](Entity* entity) -> bool {
-        return entity->owner->GetNumMinionsPlayedThisTurn() == num;
+    return SelfCondition([=](Playable* playable) -> bool {
+        return playable->player->GetNumMinionsPlayedThisTurn() == num;
     });
 }
 
 SelfCondition SelfCondition::IsTagValue(GameTag tag, int value,
                                         RelaSign relaSign)
 {
-    return SelfCondition([=](Entity* entity) -> bool {
-        return (relaSign == RelaSign::EQ && entity->GetGameTag(tag) == value) ||
+    return SelfCondition([=](Playable* playable) -> bool {
+        return (relaSign == RelaSign::EQ &&
+                playable->GetGameTag(tag) == value) ||
                (relaSign == RelaSign::GEQ &&
-                entity->GetGameTag(tag) >= value) ||
-               (relaSign == RelaSign::LEQ && entity->GetGameTag(tag) <= value);
+                playable->GetGameTag(tag) >= value) ||
+               (relaSign == RelaSign::LEQ &&
+                playable->GetGameTag(tag) <= value);
     });
 }
 
 SelfCondition SelfCondition::IsName(const std::string& name, bool isEqual)
 {
-    return SelfCondition([=](Entity* entity) -> bool {
-        return !((entity->card->name == name) ^ isEqual);
+    return SelfCondition([=](Playable* playable) -> bool {
+        return !((playable->card->name == name) ^ isEqual);
     });
 }
 
-bool SelfCondition::Evaluate(Entity* entity) const
+SelfCondition SelfCondition::IsStackNum(int value, RelaSign relaSign, int index)
 {
-    return m_func(entity);
+    return SelfCondition([=](Playable* playable) -> bool {
+        auto& stack = playable->game->taskStack;
+        const auto num = index == 0 ? stack.num : stack.num1;
+
+        return (relaSign == RelaSign::EQ && num == value) ||
+               (relaSign == RelaSign::GEQ && num >= value) ||
+               (relaSign == RelaSign::LEQ && num <= value);
+    });
+}
+
+SelfCondition SelfCondition::IsHealth(int value, RelaSign relaSign)
+{
+    return SelfCondition([=](Playable* playable) -> bool {
+        const auto character = dynamic_cast<Character*>(playable);
+        if (character == nullptr)
+        {
+            return false;
+        }
+
+        return (relaSign == RelaSign::EQ && character->GetHealth() == value) ||
+               (relaSign == RelaSign::GEQ && character->GetHealth() >= value) ||
+               (relaSign == RelaSign::LEQ && character->GetHealth() <= value);
+    });
+}
+
+bool SelfCondition::Evaluate(Playable* owner) const
+{
+    return m_func(owner);
 }
 }  // namespace RosettaStone

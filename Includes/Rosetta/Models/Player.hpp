@@ -7,24 +7,22 @@
 #ifndef ROSETTASTONE_PLAYER_HPP
 #define ROSETTASTONE_PLAYER_HPP
 
-#include <Rosetta/Commons/Constants.hpp>
+#include <Rosetta/Enums/GameEnums.hpp>
 #include <Rosetta/Models/Choice.hpp>
 #include <Rosetta/Models/Entity.hpp>
 #include <Rosetta/Models/Hero.hpp>
-#include <Rosetta/Zones/DeckZone.hpp>
-#include <Rosetta/Zones/FieldZone.hpp>
-#include <Rosetta/Zones/GraveyardZone.hpp>
-#include <Rosetta/Zones/HandZone.hpp>
-#include <Rosetta/Zones/SecretZone.hpp>
-#include <Rosetta/Zones/SetasideZone.hpp>
 
 #include <string>
 
 namespace RosettaStone
 {
 class Game;
-class IPolicy;
-class TaskMeta;
+class DeckZone;
+class FieldZone;
+class GraveyardZone;
+class HandZone;
+class SecretZone;
+class SetasideZone;
 
 //!
 //! \brief Player class.
@@ -33,7 +31,7 @@ class TaskMeta;
 //! NOTE: This information should be used differently from the existing card
 //! information because there are various effects on the card.
 //!
-class Player
+class Player : public Entity
 {
  public:
     static constexpr std::size_t USER_INVALID = 255;
@@ -44,57 +42,57 @@ class Player
     //! Destructor.
     ~Player();
 
-    //! Deleted copy constructor.
+    //! Default copy constructor.
     Player(const Player&) = delete;
 
-    //! Deleted copy assignment operator.
-    Player& operator=(const Player&) = delete;
-
-    //! Deleted move constructor.
+    //! Default move constructor.
     Player(Player&&) noexcept = delete;
 
-    //! Deleted move assignment operator.
+    //! Default copy assignment operator.
+    Player& operator=(const Player&) = delete;
+
+    //! Default move assignment operator.
     Player& operator=(Player&&) noexcept = delete;
 
     //! Copies the contents from reference \p rhs.
     //! \param rhs The source to copy the content.
     void RefCopy(const Player& rhs);
 
-    //! Returns a pointer to game.
-    //! \return A pointer to game.
-    Game* GetGame() const;
-
-    //! Sets a pointer to game.
-    //! \param game A pointer to game.
-    void SetGame(Game* game);
-
     //! Returns player's field zone.
     //! \return Player's field zone.
-    FieldZone& GetFieldZone() const;
+    FieldZone* GetFieldZone() const;
 
     //! Returns player's deck zone.
     //! \return Player's deck zone.
-    DeckZone& GetDeckZone() const;
+    DeckZone* GetDeckZone() const;
 
     //! Returns player's graveyard zone.
     //! \return Player's graveyard zone.
-    GraveyardZone& GetGraveyardZone() const;
+    GraveyardZone* GetGraveyardZone() const;
 
     //! Returns player's hand zone.
     //! \return Player's hand zone.
-    HandZone& GetHandZone() const;
+    HandZone* GetHandZone() const;
 
     //! Returns player's secret zone.
     //! \return player's secret zone.
-    SecretZone& GetSecretZone() const;
+    SecretZone* GetSecretZone() const;
 
     //! Returns player's setaside zone.
     //! \return Player's setaside zone.
-    SetasideZone& GetSetasideZone() const;
+    SetasideZone* GetSetasideZone() const;
 
     //! Returns player's hero.
     //! \return Player's hero.
     Hero* GetHero() const;
+
+    //! Returns player's hero power.
+    //! \return Player's hero power.
+    HeroPower& GetHeroPower() const;
+
+    //! Returns player's hero weapon.
+    //! \return Player's hero weapon.
+    Weapon& GetWeapon() const;
 
     //! Returns the value of game tag.
     //! \param tag The game tag of card.
@@ -167,10 +165,6 @@ class Player
     //! \param value The number of minions that played this turn.
     void SetNumMinionsPlayedThisTurn(int value);
 
-    //! Returns the next action of policy.
-    //! \return A task to run that is determined by policy.
-    ITask* GetNextAction();
-
     //! Adds hero and hero power.
     //! \param heroCard A card that represents hero.
     //! \param powerCard A card that represents hero power.
@@ -184,17 +178,12 @@ class Player
     Mulligan mulliganState = Mulligan::INVALID;
     std::optional<Choice> choice = std::nullopt;
 
-    IPolicy* policy = nullptr;
     Player* opponent = nullptr;
 
     int currentSpellPower = 0;
 
  private:
-    // Returns a task that is selected by action.
-    //! \param next A next action selected by policy.
-    //! \param req A requirement for action.
-    //! \return A task that is selected by action.
-    static ITask* GetTaskByAction(TaskMeta& next, TaskMeta& req);
+    Hero* m_hero = nullptr;
 
     DeckZone* m_deckZone = nullptr;
     FieldZone* m_fieldZone = nullptr;
@@ -202,9 +191,6 @@ class Player
     HandZone* m_handZone = nullptr;
     SecretZone* m_secretZone = nullptr;
     SetasideZone* m_setasideZone = nullptr;
-
-    Hero* m_hero = nullptr;
-    Game* m_game = nullptr;
 
     std::map<GameTag, int> m_gameTags;
 };

@@ -11,6 +11,8 @@
 #include <Rosetta/Enchants/Trigger.hpp>
 #include <Rosetta/Games/Game.hpp>
 #include <Rosetta/Games/GameConfig.hpp>
+#include <Rosetta/Zones/FieldZone.hpp>
+#include <Rosetta/Zones/GraveyardZone.hpp>
 
 using namespace RosettaStone;
 using namespace TestUtils;
@@ -25,17 +27,17 @@ TEST(Trigger, None)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::NONE));
@@ -56,17 +58,17 @@ TEST(Trigger, TurnStart)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::TURN_START));
@@ -87,17 +89,17 @@ TEST(Trigger, TurnEnd)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::TURN_END));
@@ -118,17 +120,17 @@ TEST(Trigger, PlayCard)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::PLAY_CARD));
@@ -149,17 +151,17 @@ TEST(Trigger, CastSpell)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::CAST_SPELL));
@@ -180,17 +182,17 @@ TEST(Trigger, AfterCast)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::AFTER_CAST));
@@ -211,17 +213,17 @@ TEST(Trigger, Heal)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::HEAL));
@@ -242,17 +244,17 @@ TEST(Trigger, Attack)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::ATTACK));
@@ -273,17 +275,17 @@ TEST(Trigger, AfterAttack_None)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::AFTER_ATTACK));
@@ -305,17 +307,17 @@ TEST(Trigger, AfterAttack_Hero)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::AFTER_ATTACK));
@@ -337,17 +339,17 @@ TEST(Trigger, AfterAttack_Self)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::AFTER_ATTACK));
@@ -369,18 +371,18 @@ TEST(Trigger, AfterAttack_EnchantmentTarget)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
-    auto& curGraveyard = curPlayer.GetGraveyardZone();
+    auto& curField = *(curPlayer->GetFieldZone());
+    auto& curGraveyard = *(curPlayer->GetGraveyardZone());
 
     auto card1 = GenerateEnchantmentCard("enchant1");
     auto card2 = GenerateMinionCard("minion1", 3, 6);
@@ -407,17 +409,17 @@ TEST(Trigger, Summon)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::SUMMON));
@@ -438,17 +440,17 @@ TEST(Trigger, DealDamage)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::DEAL_DAMAGE));
@@ -470,17 +472,17 @@ TEST(Trigger, TakeDamage)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::TAKE_DAMAGE));
@@ -501,17 +503,17 @@ TEST(Trigger, Predamage_None)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::PREDAMAGE));
@@ -533,18 +535,18 @@ TEST(Trigger, Predamage_Hero)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
-    auto& curGraveyard = curPlayer.GetGraveyardZone();
+    auto& curField = *(curPlayer->GetFieldZone());
+    auto& curGraveyard = *(curPlayer->GetGraveyardZone());
 
     auto card1 = GenerateEnchantmentCard("enchant1");
     auto card2 = GenerateMinionCard("minion1", 3, 6);
@@ -571,17 +573,17 @@ TEST(Trigger, Predamage_Self)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::PREDAMAGE));
@@ -603,18 +605,18 @@ TEST(Trigger, Predamage_EnchantmentTarget)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
-    auto& curGraveyard = curPlayer.GetGraveyardZone();
+    auto& curField = *(curPlayer->GetFieldZone());
+    auto& curGraveyard = *(curPlayer->GetGraveyardZone());
 
     auto card1 = GenerateEnchantmentCard("enchant1");
     auto card2 = GenerateMinionCard("minion1", 3, 6);
@@ -641,17 +643,17 @@ TEST(Trigger, Target)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
-    curPlayer.SetTotalMana(10);
-    curPlayer.SetUsedMana(0);
-    opPlayer.SetTotalMana(10);
-    opPlayer.SetUsedMana(0);
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
+    curPlayer->SetTotalMana(10);
+    curPlayer->SetUsedMana(0);
+    opPlayer->SetTotalMana(10);
+    opPlayer->SetUsedMana(0);
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     card1.power.AddTrigger(new Trigger(TriggerType::TARGET));

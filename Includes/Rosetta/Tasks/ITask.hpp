@@ -8,7 +8,6 @@
 #define ROSETTASTONE_ITASK_HPP
 
 #include <Rosetta/Models/Player.hpp>
-#include <Rosetta/Tasks/TaskMeta.hpp>
 #include <Rosetta/Tasks/TaskStatus.hpp>
 
 namespace RosettaStone
@@ -36,13 +35,13 @@ class ITask
     //! Constructs task with given \p source and \p target.
     //! \param source A source entity to apply task.
     //! \param target A target entity to apply task.
-    ITask(Entity* source, Entity* target);
+    ITask(Entity* source, Playable* target);
 
     //! Constructs task with given \p entityType, \p source and \p target.
     //! \param entityType The entity type of target.
     //! \param source A source entity to apply task.
     //! \param target A target entity to apply task.
-    ITask(EntityType entityType, Entity* source, Entity* target);
+    ITask(EntityType entityType, Entity* source, Playable* target);
 
     //! Default destructor.
     virtual ~ITask() = default;
@@ -73,15 +72,11 @@ class ITask
 
     //! Sets the target.
     //! \param target The target.
-    void SetTarget(Entity* target);
+    void SetTarget(Playable* target);
 
     //! Calls Impl method and returns meta data.
     //! \return The result of task processing.
     TaskStatus Run();
-
-    //! Returns task ID (pure virtual).
-    //! \return Task ID.
-    virtual TaskID GetTaskID() const = 0;
 
     //! Returns the cloned task.
     //! \return The cloned task.
@@ -90,7 +85,7 @@ class ITask
     ITask* Clone();
 
     //! Checks it is freeable task.
-    //! \return The flag to indicate it is freeable task.
+    //! \return The flag to indicate that it is freeable task.
     //! \note This will be used for solving multi-thread and memory leak issue.
     //! \note You have to free it if it is cloned, otherwise cause leaks memory.
     bool IsFreeable() const;
@@ -102,7 +97,7 @@ class ITask
     EntityType m_entityType = EntityType::EMPTY;
     Player* m_player = nullptr;
     Entity* m_source = nullptr;
-    Entity* m_target = nullptr;
+    Playable* m_target = nullptr;
 
     bool m_isFreeable = false;
 
@@ -110,7 +105,7 @@ class ITask
     //! Processes task logic internally and returns meta data.
     //! \param player The player to run task.
     //! \return The result of task processing.
-    virtual TaskStatus Impl(Player& player) = 0;
+    virtual TaskStatus Impl(Player* player) = 0;
 
     //! Internal method of Clone().
     //! \return The cloned task.

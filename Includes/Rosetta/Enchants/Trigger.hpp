@@ -39,8 +39,8 @@ class Trigger
     //! Activates trigger to battlefield.
     //! \param source The source of trigger.
     //! \param activation The activation of trigger.
-    //! \param cloning The flag to indicate it is cloned.
-    void Activate(Entity* source,
+    //! \param cloning The flag to indicate that it is cloned.
+    void Activate(Playable* source,
                   TriggerActivation activation = TriggerActivation::PLAY,
                   bool cloning = false);
 
@@ -59,6 +59,7 @@ class Trigger
     std::vector<ITask*> tasks;
     SelfCondition* condition = nullptr;
 
+    float percentage = 1.0f;
     bool fastExecution = false;
     bool removeAfterTriggered = false;
 
@@ -78,7 +79,7 @@ class Trigger
     //! \param source The source of trigger.
     void Validate(Player* player, Entity* source);
 
-    Entity* m_owner = nullptr;
+    Playable* m_owner = nullptr;
 
     TriggerType m_triggerType = TriggerType::NONE;
     TriggerActivation m_triggerActivation = TriggerActivation::PLAY;

@@ -14,16 +14,11 @@ ManaCrystalTask::ManaCrystalTask(int amount, bool fill, bool isOpponent)
     // Do nothing
 }
 
-TaskID ManaCrystalTask::GetTaskID() const
-{
-    return TaskID::MANA_CRYSTAL;
-}
-
-TaskStatus ManaCrystalTask::Impl(Player& player)
+TaskStatus ManaCrystalTask::Impl(Player* player)
 {
     if (m_isOpponent)
     {
-        Generic::ChangeManaCrystal(*player.opponent, m_amount, m_fill);
+        Generic::ChangeManaCrystal(player->opponent, m_amount, m_fill);
     }
     else
     {

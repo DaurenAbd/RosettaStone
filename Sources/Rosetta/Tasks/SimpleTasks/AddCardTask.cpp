@@ -12,30 +12,34 @@
 namespace RosettaStone::SimpleTasks
 {
 AddCardTask::AddCardTask(EntityType entityType, std::string cardID, int amount)
-    : ITask(entityType), m_cardID(cardID), m_amount(amount)
+    : ITask(entityType), m_cardID(std::move(cardID)), m_amount(amount)
 {
     // Do nothing
 }
 
-TaskID AddCardTask::GetTaskID() const
-{
-    return TaskID::ADD_CARD;
-}
-
-TaskStatus AddCardTask::Impl(Player& player)
+TaskStatus AddCardTask::Impl(Player* player)
 {
     std::vector<Entity*> entities;
 
     switch (m_entityType)
     {
+        case EntityType::HAND:
+        {
+            for (int i = 0; i < m_amount; ++i)
+            {
+                Card* card = Cards::FindCardByID(m_cardID);
+                Generic::AddCardToHand(player,
+                                       Entity::GetFromCard(player, card));
+            }
+        }
         case EntityType::ENEMY_HAND:
         {
             for (int i = 0; i < m_amount; ++i)
             {
-                Card* card = Cards::GetInstance().FindCardByID(m_cardID);
+                Card* card = Cards::FindCardByID(m_cardID);
                 Generic::AddCardToHand(
-                    *player.opponent,
-                    Entity::GetFromCard(*player.opponent, card));
+                    player->opponent,
+                    Entity::GetFromCard(player->opponent, card));
             }
             break;
         }

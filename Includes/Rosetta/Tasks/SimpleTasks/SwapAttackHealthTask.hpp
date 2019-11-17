@@ -24,15 +24,11 @@ class SwapAttackHealthTask : public ITask
     explicit SwapAttackHealthTask(EntityType entityType,
                                   std::string enchantmentID);
 
-    //! Returns task ID.
-    //! \return Task ID.
-    TaskID GetTaskID() const override;
-
  private:
     //! Processes task logic internally and returns meta data.
     //! \param player The player to run task.
     //! \return The result of task processing.
-    TaskStatus Impl(Player& player) override;
+    TaskStatus Impl(Player* player) override;
 
     //! Internal method of Clone().
     //! \return The cloned task.

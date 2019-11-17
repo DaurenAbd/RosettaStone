@@ -10,14 +10,9 @@
 
 namespace RosettaStone::PlayerTasks
 {
-TaskID EndTurnTask::GetTaskID() const
+TaskStatus EndTurnTask::Impl(Player* player)
 {
-    return TaskID::END_TURN;
-}
-
-TaskStatus EndTurnTask::Impl(Player& player)
-{
-    auto game = player.GetGame();
+    auto game = player->game;
 
     game->nextStep = Step::MAIN_END;
     GameManager::ProcessNextStep(*game, game->nextStep);

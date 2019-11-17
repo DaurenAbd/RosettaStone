@@ -17,16 +17,11 @@ namespace RosettaStone::PlayerTasks
 //!
 class EndTurnTask : public ITask
 {
- public:
-    //! Returns task ID.
-    //! \return Task ID.
-    TaskID GetTaskID() const override;
-
  private:
     //! Processes task logic internally and returns meta data.
     //! \param player The player to run task.
     //! \return The result of task processing.
-    TaskStatus Impl(Player& player) override;
+    TaskStatus Impl(Player* player) override;
 
     //! Returns Clone Of Object (pure virtual).
     //! \returns clone of object.

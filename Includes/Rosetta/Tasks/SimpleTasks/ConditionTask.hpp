@@ -32,15 +32,19 @@ class ConditionTask : public ITask
     explicit ConditionTask(EntityType entityType,
                            std::vector<RelaCondition> relaConditions);
 
-    //! Returns task ID.
-    //! \return Task ID.
-    TaskID GetTaskID() const override;
+    //! Constructs task with given \p entityType and \p selfConditions and \p relaConditions.
+    //! \param entityType The entity type to check condition.
+    //! \param selfConditions A container of self condition.
+    //! \param relaConditions A container of relation condition.
+    explicit ConditionTask(EntityType entityType,
+                           std::vector<SelfCondition> selfConditions,
+                           std::vector<RelaCondition> relaConditions);
 
  private:
     //! Processes task logic internally and returns meta data.
     //! \param player The player to run task.
     //! \return The result of task processing.
-    TaskStatus Impl(Player& player) override;
+    TaskStatus Impl(Player* player) override;
 
     //! Internal method of Clone().
     //! \return The cloned task.

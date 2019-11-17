@@ -9,16 +9,11 @@
 
 #include <Rosetta/Games/Game.hpp>
 #include <Rosetta/Tasks/SimpleTasks/ControlTask.hpp>
+#include <Rosetta/Zones/FieldZone.hpp>
 
 using namespace RosettaStone;
 using namespace SimpleTasks;
 using namespace TestUtils;
-
-TEST(ControlTask, GetTaskID)
-{
-    const ControlTask control(EntityType::TARGET);
-    EXPECT_EQ(control.GetTaskID(), TaskID::CONTROL);
-}
 
 TEST(ControlTask, Run)
 {
@@ -26,26 +21,30 @@ TEST(ControlTask, Run)
     config.startPlayer = PlayerType::PLAYER1;
     Game game(config);
 
-    Player& player1 = game.GetPlayer1();
-    Player& player2 = game.GetPlayer2();
+    Player* player1 = game.GetPlayer1();
+    Player* player2 = game.GetPlayer2();
 
-    auto& player1Field = player1.GetFieldZone();
-    auto& player2Field = player2.GetFieldZone();
+    auto& player1Field = *(player1->GetFieldZone());
+    auto& player2Field = *(player2->GetFieldZone());
 
-    std::vector<Card> cards;
-    cards.reserve(5);
+    std::vector<Card> player1Cards, player2Cards;
+    player1Cards.reserve(6);
+    player2Cards.reserve(6);
 
     const std::string name = "test";
     for (std::size_t i = 0; i < 6; ++i)
     {
         const auto id = static_cast<char>(i + 0x30);
-        cards.emplace_back(GenerateMinionCard(name + id, 1, 1));
-        PlayMinionCard(player1, &cards[i]);
-        PlayMinionCard(player2, &cards[i]);
+
+        player1Cards.emplace_back(GenerateMinionCard(name + id, 1, 1));
+        PlayMinionCard(player1, &player1Cards[i]);
+
+        player2Cards.emplace_back(GenerateMinionCard(name + id, 1, 1));
+        PlayMinionCard(player2, &player2Cards[i]);
     }
 
     ControlTask control(EntityType::TARGET);
-    control.SetPlayer(&player1);
+    control.SetPlayer(player1);
     control.SetTarget(player2Field[0]);
     TaskStatus result = control.Run();
 
@@ -57,7 +56,7 @@ TEST(ControlTask, Run)
     EXPECT_EQ(player1Field[6]->GetAttack(), 1);
     EXPECT_EQ(player1Field[6]->GetHealth(), 1);
 
-    control.SetPlayer(&player1);
+    control.SetPlayer(player1);
     control.SetTarget(player2Field[1]);
     result = control.Run();
 

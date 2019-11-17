@@ -7,10 +7,12 @@
 #include <Rosetta/Commons/Utils.hpp>
 #include <Rosetta/Models/HeroPower.hpp>
 #include <Rosetta/Models/Player.hpp>
-#include <Rosetta/Policies/Policy.hpp>
-#include <Rosetta/Tasks/PlayerTasks/AttackTask.hpp>
-#include <Rosetta/Tasks/PlayerTasks/EndTurnTask.hpp>
-#include <Rosetta/Tasks/PlayerTasks/PlayCardTask.hpp>
+#include <Rosetta/Zones/DeckZone.hpp>
+#include <Rosetta/Zones/FieldZone.hpp>
+#include <Rosetta/Zones/GraveyardZone.hpp>
+#include <Rosetta/Zones/HandZone.hpp>
+#include <Rosetta/Zones/SecretZone.hpp>
+#include <Rosetta/Zones/SetasideZone.hpp>
 
 namespace RosettaStone
 {
@@ -46,10 +48,8 @@ void Player::RefCopy(const Player& rhs)
     mulliganState = rhs.mulliganState;
     choice = rhs.choice;
 
-    policy = rhs.policy;
+    m_hero = rhs.m_hero;
     opponent = rhs.opponent;
-
-    currentSpellPower = rhs.currentSpellPower;
 
     m_deckZone = rhs.m_deckZone;
     m_fieldZone = rhs.m_fieldZone;
@@ -58,55 +58,53 @@ void Player::RefCopy(const Player& rhs)
     m_secretZone = rhs.m_secretZone;
     m_setasideZone = rhs.m_setasideZone;
 
-    m_hero = rhs.m_hero;
-    m_game = rhs.m_game;
-
     m_gameTags = rhs.m_gameTags;
+    currentSpellPower = rhs.currentSpellPower;
 }
 
-Game* Player::GetGame() const
+FieldZone* Player::GetFieldZone() const
 {
-    return m_game;
+    return m_fieldZone;
 }
 
-void Player::SetGame(Game* game)
+DeckZone* Player::GetDeckZone() const
 {
-    m_game = game;
+    return m_deckZone;
 }
 
-FieldZone& Player::GetFieldZone() const
+GraveyardZone* Player::GetGraveyardZone() const
 {
-    return *m_fieldZone;
+    return m_graveyardZone;
 }
 
-DeckZone& Player::GetDeckZone() const
+HandZone* Player::GetHandZone() const
 {
-    return *m_deckZone;
+    return m_handZone;
 }
 
-GraveyardZone& Player::GetGraveyardZone() const
+SecretZone* Player::GetSecretZone() const
 {
-    return *m_graveyardZone;
+    return m_secretZone;
 }
 
-HandZone& Player::GetHandZone() const
+SetasideZone* Player::GetSetasideZone() const
 {
-    return *m_handZone;
-}
-
-SecretZone& Player::GetSecretZone() const
-{
-    return *m_secretZone;
-}
-
-SetasideZone& Player::GetSetasideZone() const
-{
-    return *m_setasideZone;
+    return m_setasideZone;
 }
 
 Hero* Player::GetHero() const
 {
     return m_hero;
+}
+
+HeroPower& Player::GetHeroPower() const
+{
+    return *m_hero->heroPower;
+}
+
+Weapon& Player::GetWeapon() const
+{
+    return *m_hero->weapon;
 }
 
 int Player::GetGameTag(GameTag tag) const
@@ -200,68 +198,9 @@ void Player::SetNumMinionsPlayedThisTurn(int value)
     SetGameTag(GameTag::NUM_MINIONS_PLAYED_THIS_TURN, value);
 }
 
-ITask* Player::GetNextAction()
-{
-    ITask* ret;
-
-    do
-    {
-        // Get next action as TaskID
-        // ex) TaskID::END_TURN, TaskID::ATTACK, TaskID::PLAY_CARD
-        TaskMeta next = policy->Next(*m_game);
-        // Get requirements for proper action
-        TaskMeta req = policy->Require(*this, next.GetID());
-
-        ret = GetTaskByAction(next, req);
-    } while (ret == nullptr);
-
-    return ret;
-}
-
 void Player::AddHeroAndPower(Card* heroCard, Card* powerCard)
 {
-    m_hero =
-        dynamic_cast<Hero*>(Entity::GetFromCard(*this, heroCard));
-    m_hero->heroPower = dynamic_cast<HeroPower*>(
-        Entity::GetFromCard(*this, powerCard));
-}
-
-ITask* Player::GetTaskByAction(TaskMeta& next, TaskMeta& req)
-{
-    SizedPtr<Entity*> list = req.GetObject<SizedPtr<Entity*>>();
-
-    switch (next.GetID())
-    {
-        case TaskID::ATTACK:
-        {
-            if (list.size() >= 2)
-            {
-                Entity* source = list[0];
-                Entity* target = list[1];
-                return new PlayerTasks::AttackTask(source, target);
-            }
-
-            return nullptr;
-        }
-        case TaskID::PLAY_CARD:
-        {
-            // If requirement doesn't satisfy
-            if (list.size() < 1)
-            {
-                return nullptr;
-            }
-
-            Entity* source = list[0];
-            Entity* target = list.size() >= 2 ? list[1] : nullptr;
-
-            return new PlayerTasks::PlayCardTask(source, target);
-        }
-        case TaskID::END_TURN:
-        {
-            return new PlayerTasks::EndTurnTask();
-        }
-        default:
-            return nullptr;
-    }
+    m_hero = dynamic_cast<Hero*>(GetFromCard(this, heroCard));
+    m_hero->heroPower = dynamic_cast<HeroPower*>(GetFromCard(this, powerCard));
 }
 }  // namespace RosettaStone

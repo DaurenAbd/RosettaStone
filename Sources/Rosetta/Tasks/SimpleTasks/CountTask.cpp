@@ -9,30 +9,53 @@
 
 namespace RosettaStone::SimpleTasks
 {
-CountTask::CountTask(EntityType entityType, int numIndex)
-    : ITask(entityType), m_numIndex(numIndex)
+
+CountTask::CountTask(EntityType entityType, int numIndex, std::vector<SelfCondition> conditions)
+    : ITask(entityType), m_numIndex(numIndex), m_conditions(std::move(conditions))
 {
     // Do nothing
 }
 
-TaskID CountTask::GetTaskID() const
+TaskStatus CountTask::Impl(Player* player)
 {
-    return TaskID::COUNT;
-}
-
-TaskStatus CountTask::Impl(Player& player)
-{
-    const auto entities =
+    const auto playables =
         IncludeTask::GetEntities(m_entityType, player, m_source, m_target);
-    const int count = static_cast<int>(entities.size());
+    
+    int count;
+    if (m_conditions.empty())
+    {
+        count = static_cast<int>(playables.size());
+    }
+    else
+    {
+        std::vector<Playable*> filtered;
+        filtered.reserve(playables.size());
+
+        for (auto& playable : playables)
+        {
+            bool flag = true;
+            for (auto& condition : m_conditions)
+            {
+                if (!condition.Evaluate(playable))
+                {
+                    flag = false;
+                }
+            }
+            if (flag)
+            {
+                filtered.push_back(playable);
+            }
+        }
+        count = static_cast<int>(filtered.size());
+    }
 
     switch (m_numIndex)
     {
         case 0:
-            player.GetGame()->taskStack.num = count;
+            player->game->taskStack.num = count;
             break;
         case 1:
-            player.GetGame()->taskStack.num1 = count;
+            player->game->taskStack.num1 = count;
             break;
         default:
             throw std::invalid_argument(
@@ -43,6 +66,6 @@ TaskStatus CountTask::Impl(Player& player)
 
 ITask* CountTask::CloneImpl()
 {
-    return new CountTask(m_entityType, m_numIndex);
+    return new CountTask(m_entityType, m_numIndex, m_conditions);
 }
 }  // namespace RosettaStone::SimpleTasks

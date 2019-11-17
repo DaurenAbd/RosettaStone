@@ -6,7 +6,8 @@
 #ifndef ROSETTASTONE_ZONE_HPP
 #define ROSETTASTONE_ZONE_HPP
 
-#include <Rosetta/Enchants/Aura.hpp>
+#include <Rosetta/Auras/Aura.hpp>
+#include <Rosetta/Models/Player.hpp>
 #include <Rosetta/Zones/IZone.hpp>
 
 #include <algorithm>
@@ -19,34 +20,50 @@ namespace RosettaStone
 //!
 //! This class is base implementation of IZone.
 //!
-template <typename T>
+template <typename T = Playable>
 class Zone : public IZone
 {
  public:
-    //! Default constructor.
-    Zone() = default;
+    //! Constructs zone with given \p type.
+    //! \param type The type of zone.
+    Zone(ZoneType type)
+    {
+        m_type = type;
+    }
+
+    //! Constructs zone with given \p player and \p type.
+    //! \param player The player.
+    //! \param type The type of zone.
+    Zone(Player* player, ZoneType type) : m_game(player->game), m_player(player)
+    {
+        m_type = type;
+    }
 
     //! Default virtual destructor.
     virtual ~Zone() = default;
 
     //! Adds the specified entity into this zone, at the given position.
-    //! \param entity The entity.
-    //! \param zonePos The zone position.
-    void Add(Entity& entity, int zonePos = -1) override = 0;
+    //! \param entity The entity to add.
+    //! \param zonePos The zone position of entity.
+    void Add(Playable* entity, int zonePos = -1) override = 0;
 
     //! Removes the specified entity from this zone.
-    //! \param entity The entity.
-    //! \return The entity.
-    Entity& Remove(Entity& entity) override = 0;
+    //! \param entity The entity to remove.
+    //! \return The removed entity.
+    Playable* Remove(Playable* entity) override = 0;
 
     //! Moves the specified entity to a new position.
-    //! \param entity The entity.
-    //! \param zonePos The zone position.
-    virtual void MoveTo(T& entity, int zonePos = -1) = 0;
+    //! \param entity The entity to move.
+    //! \param zonePos The zone position of entity.
+    virtual void MoveTo(T* entity, int zonePos = -1) = 0;
 
     //! Returns the number of entities in this zone.
     //! \return The number of entities in this zone.
     virtual int GetCount() const = 0;
+
+    //! Returns a value indicating whether this zone is full.
+    //! \return true if this zone is full, false otherwise.
+    bool IsFull() const override = 0;
 
     //! Returns a value indicating whether this zone is empty.
     //! \return true if this zone is empty, false otherwise.
@@ -55,12 +72,9 @@ class Zone : public IZone
         return GetCount() == 0;
     }
 
-    //! Returns a value indicating whether this zone is full.
-    //! \return true if this zone is full, false otherwise.
-    bool IsFull() const override = 0;
-
  protected:
-    Player* m_owner = nullptr;
+    Game* m_game = nullptr;
+    Player* m_player = nullptr;
 };  // namespace RosettaStone
 
 //!
@@ -68,9 +82,19 @@ class Zone : public IZone
 //!
 //! This class is base implementation of GraveyardZone and SetasideZone.
 //!
-class UnlimitedZone : public Zone<Entity>
+class UnlimitedZone : public Zone<Playable>
 {
  public:
+    //! Constructs unlimited zone with given \p player and \p type.
+    //! \param player The player.
+    //! \param type The type of zone.
+    UnlimitedZone(Player* player, ZoneType type) : Zone<Playable>(type)
+    {
+        m_game = player->game;
+        m_player = player;
+    }
+
+    //! Destructor.
     ~UnlimitedZone()
     {
         for (auto& entity : m_entities)
@@ -81,15 +105,32 @@ class UnlimitedZone : public Zone<Entity>
         m_entities.clear();
     }
 
-    //! Operator overloading for operator[]
-    Entity* operator[](int zonePos)
+    //! Deleted copy constructor.
+    UnlimitedZone(const UnlimitedZone&) = delete;
+
+    //! Deleted move constructor.
+    UnlimitedZone(UnlimitedZone&&) noexcept = delete;
+
+    //! Deleted copy assignment operator.
+    UnlimitedZone& operator=(const UnlimitedZone&) = delete;
+
+    //! Deleted move assignment operator.
+    UnlimitedZone& operator=(UnlimitedZone&&) noexcept = delete;
+
+    //! Operator overloading for operator[].
+    //! \param zonePos The zone position of entity.
+    //! \return The entity at \p zonePos.
+    Playable* operator[](int zonePos)
     {
         return m_entities[zonePos];
     }
 
-    void Add(Entity& entity, int zonePos = -1) override
+    //! Adds the specified entity into this zone, at the given position.
+    //! \param entity The entity to add.
+    //! \param zonePos The zone position of entity.
+    void Add(Playable* entity, int zonePos = -1) override
     {
-        if (entity.owner != m_owner)
+        if (entity->player != m_player)
         {
             throw std::logic_error(
                 "Can't add an opponent's entity to own zones");
@@ -98,39 +139,60 @@ class UnlimitedZone : public Zone<Entity>
         MoveTo(entity, zonePos);
     }
 
-    Entity& Remove(Entity& entity) override
+    //! Removes the specified entity from this zone.
+    //! \param entity The entity to remove.
+    //! \return The removed entity.
+    Playable* Remove(Playable* entity) override
     {
-        if (entity.zone == nullptr || entity.zone->GetType() != m_type)
+        if (entity->zone == nullptr || entity->zone->GetType() != m_type)
         {
             throw std::logic_error("Couldn't remove entity from zone.");
         }
 
         m_entities.erase(
-            std::remove(m_entities.begin(), m_entities.end(), &entity),
+            std::remove(m_entities.begin(), m_entities.end(), entity),
             m_entities.end());
 
         return entity;
     }
 
-    void MoveTo(Entity& entity, int) override
+    //! Moves the specified entity to a new position.
+    //! \param entity The entity to move.
+    //! \param zonePos The zone position of entity.
+    void MoveTo(Playable* entity, [[maybe_unused]] int zonePos) override
     {
-        m_entities.emplace_back(&entity);
-        entity.zone = this;
-        entity.SetZoneType(m_type);
+        m_entities.emplace_back(entity);
+        entity->zone = this;
+        entity->SetZoneType(m_type);
     }
 
+    //! Returns the number of entities in this zone.
+    //! \return The number of entities in this zone.
     int GetCount() const override
     {
         return m_entities.size();
     }
 
+    //! Returns a value indicating whether this zone is full.
+    //! \return true if this zone is full, false otherwise.
     bool IsFull() const override
     {
         return false;
     }
 
+    //! Runs \p functor on each entity of the zone.
+    //! \param functor A function to run for each entity.
+    template <typename Functor>
+    void ForEach(Functor&& functor) const
+    {
+        for (auto& entity : m_entities)
+        {
+            functor(entity);
+        }
+    }
+
  protected:
-    std::vector<Entity*> m_entities;
+    std::vector<Playable*> m_entities;
 };
 
 //!
@@ -138,11 +200,15 @@ class UnlimitedZone : public Zone<Entity>
 //!
 //! This class is base implementation of zones which have a maximum size.
 //!
-template <typename T>
+template <typename T = Playable>
 class LimitedZone : public Zone<T>
 {
  public:
-    explicit LimitedZone(int size) : m_maxSize(size)
+    //! Constructs limited zone with given \p type and \p size.
+    //! \param type The type of zone.
+    //! \param maxSize The maximum size of zone.
+    explicit LimitedZone(ZoneType type, int maxSize)
+        : Zone<T>(type), m_maxSize(maxSize)
     {
         m_entities = new T*[m_maxSize];
 
@@ -152,6 +218,7 @@ class LimitedZone : public Zone<T>
         }
     }
 
+    //! Destructor.
     ~LimitedZone()
     {
         for (int i = 0; i < m_count; ++i)
@@ -162,31 +229,51 @@ class LimitedZone : public Zone<T>
         delete[] m_entities;
     }
 
-    //! Operator overloading for operator[]
+    //! Deleted copy constructor.
+    LimitedZone(const LimitedZone&) = delete;
+
+    //! Deleted move constructor.
+    LimitedZone(LimitedZone&&) noexcept = delete;
+
+    //! Deleted copy assignment operator.
+    LimitedZone& operator=(const LimitedZone&) = delete;
+
+    //! Deleted move assignment operator.
+    LimitedZone& operator=(LimitedZone&&) noexcept = delete;
+
+    //! Operator overloading for operator[].
+    //! \param zonePos The zone position of entity.
+    //! \return The entity at \p zonePos.
     T* operator[](int zonePos)
     {
         return m_entities[zonePos];
     }
 
-    void Add(Entity& entity, int zonePos = -1) override
+    //! Adds the specified entity into this zone, at the given position.
+    //! \param entity The entity to add.
+    //! \param zonePos The zone position of entity.
+    void Add(Playable* entity, int zonePos = -1) override
     {
         if (zonePos > m_count)
         {
             throw std::logic_error("Zone position isn't in a valid range.");
         }
 
-        if (entity.owner != Zone<T>::m_owner)
+        if (entity->player != Zone<T>::m_player)
         {
             throw std::logic_error(
                 "Can't add an opponent's entity to own zones");
         }
 
-        MoveTo(static_cast<T&>(entity), zonePos < 0 ? m_count : zonePos);
+        MoveTo(static_cast<T*>(entity), zonePos < 0 ? m_count : zonePos);
     }
 
-    Entity& Remove(Entity& entity) override
+    //! Removes the specified entity from this zone.
+    //! \param entity The entity to remove.
+    //! \return The removed entity.
+    Playable* Remove(Playable* entity) override
     {
-        if (entity.zone != this)
+        if (entity->zone != this)
         {
             throw std::logic_error("Couldn't remove entity from zone.");
         }
@@ -194,7 +281,7 @@ class LimitedZone : public Zone<T>
         int pos;
         for (pos = m_count - 1; pos >= 0; --pos)
         {
-            if (&entity == dynamic_cast<Entity*>(m_entities[pos]))
+            if (entity == dynamic_cast<Playable*>(m_entities[pos]))
             {
                 break;
             }
@@ -210,17 +297,20 @@ class LimitedZone : public Zone<T>
             m_entities[m_maxSize - 1] = nullptr;
         }
 
-        entity.zone = nullptr;
+        entity->zone = nullptr;
 
-        if (entity.activatedTrigger != nullptr)
+        if (entity->activatedTrigger != nullptr)
         {
-            entity.activatedTrigger->Remove();
+            entity->activatedTrigger->Remove();
         }
 
         return entity;
     }
 
-    void MoveTo(T& entity, int zonePos = -1) override
+    //! Moves the specified entity to a new position.
+    //! \param entity The entity to move.
+    //! \param zonePos The zone position of entity.
+    void MoveTo(T* entity, int zonePos = -1) override
     {
         if (IsFull())
         {
@@ -229,7 +319,7 @@ class LimitedZone : public Zone<T>
 
         if (zonePos < 0 || zonePos == m_count)
         {
-            m_entities[m_count] = &entity;
+            m_entities[m_count] = entity;
         }
         else
         {
@@ -238,25 +328,31 @@ class LimitedZone : public Zone<T>
                 m_entities[i + 1] = m_entities[i];
             }
 
-            m_entities[zonePos] = &entity;
+            m_entities[zonePos] = entity;
         }
 
         ++m_count;
 
-        dynamic_cast<Entity&>(entity).zone = this;
-        dynamic_cast<Entity&>(entity).SetZoneType(Zone<T>::m_type);
+        dynamic_cast<Playable*>(entity)->zone = this;
+        dynamic_cast<Playable*>(entity)->SetZoneType(Zone<T>::m_type);
     }
 
+    //! Returns the number of entities in this zone.
+    //! \return The number of entities in this zone.
     int GetCount() const override
     {
         return m_count;
     }
 
+    //! Returns a value indicating whether this zone is full.
+    //! \return true if this zone is full, false otherwise.
     bool IsFull() const override
     {
         return m_count == m_maxSize;
     }
 
+    //! Returns all entities in this zone (non-const).
+    //! \return All entities in this zone.
     virtual std::vector<T*> GetAll()
     {
         std::vector<T*> result;
@@ -276,6 +372,38 @@ class LimitedZone : public Zone<T>
         return result;
     }
 
+    //! Returns all entities in this zone (const).
+    //! \return All entities in this zone.
+    virtual std::vector<T*> GetAll() const
+    {
+        std::vector<T*> result;
+        result.reserve(m_count);
+
+        for (int i = 0; i < m_count; ++i)
+        {
+            if (m_entities[i] == nullptr ||
+                static_cast<bool>(m_entities[i]->isDestroyed))
+            {
+                continue;
+            }
+
+            result.emplace_back(m_entities[i]);
+        }
+
+        return result;
+    }
+
+    //! Runs \p functor on each entity of the zone.
+    //! \param functor A function to run for each entity.
+    template <typename Functor>
+    void ForEach(Functor&& functor) const
+    {
+        for (int i = 0; i < m_count; ++i)
+        {
+            functor(m_entities[i]);
+        }
+    }
+
  protected:
     T** m_entities;
 
@@ -289,30 +417,45 @@ class LimitedZone : public Zone<T>
 //! This class is base implementation of zones performing strict recalculation
 //! of its containing entities' ZonePosition when any member comes and goes.
 //!
-template <typename T>
+template <typename T = Playable>
 class PositioningZone : public LimitedZone<T>
 {
  public:
-    explicit PositioningZone(int size) : LimitedZone<T>(size)
+    //! Constructs positioning zone with given \p type and \p maxSize.
+    //! \param type The type of zone.
+    //! \param maxSize The maximum size of zone.
+    explicit PositioningZone(ZoneType type, int maxSize)
+        : LimitedZone<T>(type, maxSize)
     {
         // Do nothing
     }
 
-    void Add(Entity& entity, int zonePos = -1) override
+    //! Adds the specified entity into this zone, at the given position.
+    //! \param entity The entity to add.
+    //! \param zonePos The zone position of entity.
+    void Add(Playable* entity, int zonePos = -1) override
     {
         LimitedZone<T>::Add(entity, zonePos);
 
         Reposition(zonePos);
+
+        for (int i = static_cast<int>(auras.size()) - 1; i >= 0; --i)
+        {
+            auras[i]->NotifyEntityAdded(entity);
+        }
     }
 
-    Entity& Remove(Entity& entity) override
+    //! Removes the specified entity from this zone.
+    //! \param entity The entity to remove.
+    //! \return The removed entity.
+    Playable* Remove(Playable* entity) override
     {
-        if (entity.zone != this)
+        if (entity->zone != this)
         {
             throw std::logic_error("Couldn't remove entity from zone.");
         }
 
-        const int pos = entity.GetZonePosition();
+        const int pos = entity->GetZonePosition();
         int count = LimitedZone<T>::m_count;
 
         if (pos < --count)
@@ -330,16 +473,16 @@ class PositioningZone : public LimitedZone<T>
 
         Reposition(pos);
 
-        entity.zone = nullptr;
+        entity->zone = nullptr;
 
-        if (entity.activatedTrigger != nullptr)
+        if (entity->activatedTrigger != nullptr)
         {
-            entity.activatedTrigger->Remove();
+            entity->activatedTrigger->Remove();
         }
 
-        for (std::size_t i = 0; i < auras.size(); ++i)
+        for (int i = static_cast<int>(auras.size()) - 1; i >= 0; --i)
         {
-            auras[i]->RemoveEntity(&entity);
+            auras[i]->NotifyEntityRemoved(entity);
         }
 
         return entity;
@@ -349,30 +492,32 @@ class PositioningZone : public LimitedZone<T>
     //! Both entities must be contained by this zone.
     //! \param oldEntity The one entity.
     //! \param newEntity The other entity.
-    void Swap(T& oldEntity, T& newEntity)
+    void Swap(T* oldEntity, T* newEntity)
     {
-        if (oldEntity.zone->GetType() != newEntity.zone->GetType())
+        if (oldEntity->zone->GetType() != newEntity->zone->GetType())
         {
             throw std::logic_error(
                 "Swap not possible because of zone mismatch");
         }
 
-        int oldPos = oldEntity.GetZonePosition();
-        int newPos = newEntity.GetZonePosition();
-        newEntity.SetZonePosition(oldPos);
-        oldEntity.SetZonePosition(newPos);
-        LimitedZone<T>::m_entities[newPos] = &oldEntity;
-        LimitedZone<T>::m_entities[oldPos] = &newEntity;
+        int oldPos = oldEntity->GetZonePosition();
+        int newPos = newEntity->GetZonePosition();
+        newEntity->SetZonePosition(oldPos);
+        oldEntity->SetZonePosition(newPos);
+        LimitedZone<T>::m_entities[newPos] = oldEntity;
+        LimitedZone<T>::m_entities[oldPos] = newEntity;
     }
 
     std::vector<Aura*> auras;
 
  private:
+    //! Repositions all entities by \p zonePos.
+    //! \param zonePos The position of entity to add or remove.
     void Reposition(int zonePos = 0)
     {
         if (zonePos < 0)
         {
-            dynamic_cast<Entity*>(
+            dynamic_cast<Playable*>(
                 LimitedZone<T>::m_entities[LimitedZone<T>::m_count - 1])
                 ->SetZonePosition(LimitedZone<T>::m_count - 1);
             return;
@@ -380,13 +525,8 @@ class PositioningZone : public LimitedZone<T>
 
         for (int i = LimitedZone<T>::m_count - 1; i >= zonePos; --i)
         {
-            dynamic_cast<Entity*>(LimitedZone<T>::m_entities[i])
+            dynamic_cast<Playable*>(LimitedZone<T>::m_entities[i])
                 ->SetZonePosition(i);
-        }
-
-        for (std::size_t i = 0; i < auras.size(); ++i)
-        {
-            auras[i]->SetToBeUpdated(true);
         }
     }
 };

@@ -10,6 +10,7 @@
 #include <Rosetta/Games/GameConfig.hpp>
 #include <Rosetta/Games/TriggerManager.hpp>
 #include <Rosetta/Models/Player.hpp>
+#include <Rosetta/Tasks/EventMetaData.hpp>
 #include <Rosetta/Tasks/TaskQueue.hpp>
 #include <Rosetta/Tasks/TaskStack.hpp>
 #include <Rosetta/Views/ReducedBoardView.hpp>
@@ -29,12 +30,12 @@ class ActionParams;
 class Game
 {
  public:
-    //! Deleted default constructor.
-    Game() = delete;
+    //! Constructs game with default values.
+    Game();
 
-    //! Constructs account with given \p gameConfig.
+    //! Constructs game with given \p gameConfig.
     //! \param gameConfig The game config holds all configuration values.
-    explicit Game(GameConfig& gameConfig);
+    explicit Game(const GameConfig& gameConfig);
 
     //! Default destructor.
     ~Game() = default;
@@ -43,13 +44,16 @@ class Game
     Game(const Game&) = delete;
 
     //! Deleted move constructor.
-    Game(Game&&) = delete;
+    Game(Game&&) noexcept = delete;
 
     //! Deleted copy assignment operator.
     Game& operator=(const Game&) = delete;
 
     //! Deleted move assignment operator.
-    Game& operator=(Game&&) = delete;
+    Game& operator=(Game&&) noexcept = delete;
+
+    //! Initializes the game state and player related variables.
+    void Initialize();
 
     //! Copies the contents from reference \p rhs.
     //! \param rhs The source to copy the content.
@@ -57,31 +61,47 @@ class Game
 
     //! Returns the first player.
     //! \return The first player.
-    Player& GetPlayer1();
+    Player* GetPlayer1();
 
     //! Returns the first player.
     //! \return The first player.
-    const Player& GetPlayer1() const;
+    const Player* GetPlayer1() const;
 
     //! Returns the second player.
     //! \return The second player.
-    Player& GetPlayer2();
+    Player* GetPlayer2();
 
     //! Returns the second player.
     //! \return The second player.
-    const Player& GetPlayer2() const;
+    const Player* GetPlayer2() const;
 
     //! Returns the player controlling the current turn.
     //! \return The player controlling the current turn.
-    Player& GetCurrentPlayer() const;
+    Player* GetCurrentPlayer();
+
+    //! Returns the player controlling the current turn.
+    //! \return The player controlling the current turn.
+    const Player* GetCurrentPlayer() const;
+
+    //! Sets the player controlling the current turn.
+    //! \param type The player type controlling the current turn.
+    void SetCurrentPlayer(PlayerType type);
 
     //! Returns the opponent player.
     //! \return The opponent player.
-    Player& GetOpponentPlayer() const;
+    Player* GetOpponentPlayer();
 
-    //! Gets the turn of game.
-    //! \return The turn of game.
+    //! Returns the opponent player.
+    //! \return The opponent player.
+    const Player* GetOpponentPlayer() const;
+
+    //! Gets the turn of the game.
+    //! \return The turn of the game.
     int GetTurn() const;
+
+    //! Sets the turn of the game.
+    //! \param turn The turn of the game.
+    void SetTurn(int turn);
 
     //! Gets the next entity identifier.
     //! \return The next entity ID.
@@ -140,7 +160,7 @@ class Game
     void FinalGameOver();
 
     //! Starts the game.
-    void StartGame();
+    void Start();
 
     // Processes task queue.
     void ProcessTasks();
@@ -157,19 +177,16 @@ class Game
     //! Process the specified task.
     //! \param player A player to run task.
     //! \param task The game task to execute.
-    PlayState Process(Player& player, ITask* task);
+    PlayState Process(Player* player, ITask* task);
 
     //! Process the specified task.
     //! \param player A player to run task.
     //! \param task The game task to execute.
-    PlayState Process(Player& player, ITask&& task);
+    PlayState Process(Player* player, ITask&& task);
 
     //! Process game until given step arriving.
     //! \param step The game step to process until arrival.
     void ProcessUntil(Step step);
-
-    //! Plays policy based game.
-    void PlayPolicy();
 
     //! Performs selected action.
     //! \result The play state of the game.
@@ -177,7 +194,7 @@ class Game
 
     //! Creates board view.
     //! \return The reduced board view.
-    ReducedBoardView CreateView() const;
+    ReducedBoardView CreateView();
 
     State state = State::INVALID;
 
@@ -187,10 +204,12 @@ class Game
     TaskQueue taskQueue;
     TaskStack taskStack;
     TriggerManager triggerManager;
+    EventMetaData* currentEventData = nullptr;
 
     std::vector<IAura*> auras;
     std::vector<Trigger*> triggers;
-    std::vector<std::pair<Entity*, Effect*>> oneTurnEffects;
+    std::vector<std::pair<Entity*, IEffect*>> oneTurnEffects;
+    std::vector<Enchantment*> oneTurnEffectEchantments;
     std::vector<Minion*> summonedMinions;
     std::map<std::size_t, Minion*> deadMinions;
 
@@ -206,8 +225,7 @@ class Game
     std::size_t m_entityID = 0;
     std::size_t m_oopIndex = 0;
 
-    Player* m_firstPlayer = nullptr;
-    Player* m_currentPlayer = nullptr;
+    PlayerType m_currentPlayer = PlayerType::INVALID;
 };
 }  // namespace RosettaStone
 

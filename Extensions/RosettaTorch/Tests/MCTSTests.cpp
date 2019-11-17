@@ -9,13 +9,30 @@
 
 #include <Agents/MCTSConfig.hpp>
 #include <Agents/MCTSRunner.hpp>
+#include <MCTS/Inspector/InteractiveShell.hpp>
+
+#include <Rosetta/Commons/DeckCode.hpp>
 
 #include <iostream>
 #include <sstream>
 
 using namespace RosettaTorch;
 
-static Agents::MCTSConfig g_config;
+static void Initialize()
+{
+    std::cout << "Reading json file...";
+
+    Cards::GetInstance();
+
+    std::cout << " Done." << std::endl;
+}
+
+struct Config
+{
+    Agents::MCTSConfig agent;
+};
+
+static Config s_config;
 
 void Run(const Agents::MCTSConfig& config, Agents::MCTSRunner* controller,
          int secs)
@@ -50,7 +67,30 @@ void Run(const Agents::MCTSConfig& config, Agents::MCTSRunner* controller,
     };
 
     const auto startIter = controller->GetStatistics().GetSuccededIterates();
-    controller->Run(g_config);
+
+    GameConfig gameConfig;
+    gameConfig.player1Class = CardClass::WARLOCK;
+    gameConfig.player2Class = CardClass::WARLOCK;
+    gameConfig.startPlayer = PlayerType::PLAYER1;
+    gameConfig.doShuffle = false;
+    gameConfig.doFillDecks = false;
+    gameConfig.skipMulligan = true;
+    gameConfig.autoRun = true;
+
+    const std::string INNKEEPER_EXPERT_WARLOCK =
+        "AAEBAfqUAwAPMJMB3ALVA9AE9wTOBtwGkgeeB/sHsQjCCMQI9ggA";
+    auto deck = DeckCode::Decode(INNKEEPER_EXPERT_WARLOCK).GetCardIDs();
+
+    for (size_t j = 0; j < deck.size(); ++j)
+    {
+        gameConfig.player1Deck[j] = *Cards::FindCardByID(deck[j]);
+        gameConfig.player2Deck[j] = *Cards::FindCardByID(deck[j]);
+    }
+
+    Game game(gameConfig);
+    game.Start();
+
+    controller->Run(BoardRefView(game, game.GetCurrentPlayer()->playerType));
 
     while (true)
     {
@@ -64,6 +104,7 @@ void Run(const Agents::MCTSConfig& config, Agents::MCTSRunner* controller,
 
     controller->NotifyStop();
     controller->WaitUntilStopped();
+
     const auto endIter = controller->GetStatistics().GetSuccededIterates();
 
     s << std::endl;
@@ -80,7 +121,7 @@ void Run(const Agents::MCTSConfig& config, Agents::MCTSRunner* controller,
     s << std::endl;
 }
 
-void CheckRun(const std::string& cmdLine, Agents::MCTSRunner* controller)
+bool CheckRun(const std::string& cmdLine, Agents::MCTSRunner* controller)
 {
     std::stringstream ss(cmdLine);
 
@@ -89,22 +130,29 @@ void CheckRun(const std::string& cmdLine, Agents::MCTSRunner* controller)
 
     if (cmd == "t" || cmd == "threads")
     {
-        ss >> g_config.threads;
+        ss >> s_config.agent.threads;
+        return true;
     }
 
     if (cmd == "s" || cmd == "start")
     {
         int secs = 0;
         ss >> secs;
-        Run(g_config, controller, secs);
+        Run(s_config.agent, controller, secs);
+        return true;
     }
+
+    return false;
 }
 
-int main()
+void TestAI()
 {
-    Cards::GetInstance();
+    s_config.agent.threads = 8;
+    s_config.agent.mcts.neuralNetPath = "neural_net_e2e_test";
+    s_config.agent.mcts.isNeuralNetRandom = false;
 
-    Agents::MCTSRunner controller;
+    Agents::MCTSRunner controller(s_config.agent);
+    MCTS::InteractiveShell handler(&controller);
 
     while (std::cin)
     {
@@ -118,6 +166,20 @@ int main()
             break;
         }
 
-        CheckRun(cmdline, &controller);
+        if (CheckRun(cmdline, &controller))
+        {
+            continue;
+        }
+
+        std::istringstream iss(cmdline);
+        handler.DoCommand(iss, std::cout);
     }
+}
+
+int main()
+{
+    Initialize();
+    TestAI();
+
+    return EXIT_SUCCESS;
 }

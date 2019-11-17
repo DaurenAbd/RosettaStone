@@ -9,11 +9,12 @@
 
 * [ ] Adapt
 * [x] Battlecry
+* [ ] Casts When Drawn
 * [x] Charge
 * [x] Choose One
 * [ ] Choose Twice
 * [x] Combo
-* [ ] Counter
+* [x] Counter
 * [x] Deathrattle
 * [ ] Discover
 * [x] Divine Shield
@@ -29,6 +30,7 @@
 * [ ] Passive
 * [x] Poisonous
 * [ ] Quest
+* [ ] Reborn
 * [ ] Recruit
 * [ ] Rush
 * [x] Secret

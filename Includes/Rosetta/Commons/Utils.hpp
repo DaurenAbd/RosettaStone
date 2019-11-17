@@ -7,33 +7,49 @@
 #ifndef ROSETTASTONE_UTILS_HPP
 #define ROSETTASTONE_UTILS_HPP
 
+#include <effolkronium/random.hpp>
+
 #include <cstddef>
 #include <functional>
+#include <string>
+#include <vector>
 
+using Random = effolkronium::random_static;
+
+//! Checks all conditions are true.
+//! \param t A value to check that it is true.
+//! \return true if all conditions are true, false otherwise.
 template <typename T>
 constexpr bool AllCondIsTrue(const T& t)
 {
-    return t == true;
+    return static_cast<bool>(t);
 }
 
+//! Checks all conditions are true.
+//! \param t A value to check that it is true.
+//! \param args Rest values to check that they are true.
+//! \return true if all conditions are true, false otherwise.
 template <typename T, typename... Others>
-constexpr bool AllCondIsTrue(const T& t, Others const&... args)
+constexpr bool AllCondIsTrue(const T& t, const Others&... args)
 {
-    return (t == true) && AllCondIsTrue(args...);
+    return (static_cast<bool>(t)) && AllCondIsTrue(args...);
 }
 
-//!
-//! \brief CombineHash function.
+//! Combines hash function with given \p v.
+//! \param seed The seed value to combine hash function.
+//! \param v The value to pass std::hash.
 //!
 //! It is based on peter1591's hearthstone-ai repository.
 //! References: https://github.com/peter1591/hearthstone-ai
-//!
 template <typename T>
 void CombineHash(std::size_t& seed, const T& v)
 {
     seed ^= std::hash<T>()(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
+//! Erases item if it is matched predicate.
+//! \param items A container consists of item.
+//! \param predicate The condition to erase item.
 template <typename ContainerT, typename PredicateT>
 void EraseIf(ContainerT& items, const PredicateT& predicate)
 {
@@ -50,265 +66,55 @@ void EraseIf(ContainerT& items, const PredicateT& predicate)
     }
 }
 
-//!
-//! \brief SizedPtr class.
-//!
-//! This class is unique_ptr like pointer wrapper.
-//! For std::any, base class required copy constructible, it supports both deep
-//! copy and move operations.
-//!
+//! Gets N elements from a list of distinct elements by using the default
+//! equality comparer. The source list must not have any repeated elements.
+//! \param list A list of distinct elements to choose.
+//! \param amount The number of elements to choose.
+//! \return A list of N distinct elements.
 template <typename T>
-class SizedPtr
+std::vector<T*> ChooseNElements(const std::vector<T*>& list, std::size_t amount)
 {
- public:
-    using value_type = T;
-    using size_type = std::size_t;
-
-    using reference = T&;
-    using const_reference = const T&;
-
-    using pointer = T*;
-    using const_pointer = const T*;
-
-    using iterator = pointer;
-    using const_iterator = const_pointer;
-
-    //! Default constructor.
-    SizedPtr() : m_size(0), m_ptr(nullptr)
+    if (amount > list.size())
     {
-        // Do nothing
+        amount = list.size();
     }
 
-    //! Constructs sized ptr with given /p size.
-    //! \param size The size of buffer.
-    explicit SizedPtr(std::size_t size) : m_size(size), m_ptr(new T[m_size])
-    {
-        // Do nothing
-    }
+    std::vector<T*> results;
+    results.reserve(amount);
 
-    //! Constructs sized ptr with given \p ptr and \p size.
-    //! \param ptr The pointer that sized ptr managing.
-    //! \param size The size of buffer.
-    SizedPtr(T* ptr, std::size_t size) : m_size(size), m_ptr(ptr)
-    {
-        // Do nothing
-    }
+    std::vector<std::size_t> indices;
+    indices.reserve(amount);
 
-    //! Default destructor.
-    ~SizedPtr()
+    for (std::size_t i = 0; i < amount; ++i)
     {
-        reset();
-    }
+        std::size_t idx;
+        bool flag;
 
-    //! Copy constructor, deep copying buffer.
-    SizedPtr(const SizedPtr& ptr) : m_size(ptr.size()), m_ptr(new T[m_size])
-    {
-        for (size_t i = 0; i < m_size; ++i)
+        do
         {
-            m_ptr[i] = ptr[i];
-        }
-    }
+            idx = Random::get<std::size_t>(0, list.size() - 1);
+            flag = false;
 
-    //! Move constructor.
-    SizedPtr(SizedPtr&& ptr) noexcept : m_size(ptr.size()), m_ptr(ptr.get())
-    {
-        ptr.m_ptr = nullptr;
-        ptr.m_size = 0;
-    }
-
-    //! Copy assignment operator, deep copying buffer.
-    SizedPtr& operator=(const SizedPtr& ptr)
-    {
-        reset(new T[ptr.size()], ptr.size());
-        for (std::size_t i = 0; i < m_size; ++i)
-        {
-            m_ptr[i] = ptr[i];
-        }
-        return *this;
-    }
-
-    //! Move assignment operator.
-    SizedPtr& operator=(SizedPtr&& ptr) noexcept
-    {
-        reset(ptr.get(), ptr.size());
-
-        ptr.m_ptr = nullptr;
-        ptr.m_size = 0;
-
-        return *this;
-    }
-
-    //! Resets buffer.
-    void reset() noexcept
-    {
-        if (m_ptr != nullptr)
-        {
-            delete[] m_ptr;
-        }
-
-        m_ptr = nullptr;
-        m_size = 0;
-    }
-
-    //! Resets buffer with given \p other and \p size.
-    //! \param other The pointer that sized ptr managing.
-    //! \param size The size of buffer.
-    void reset(T* other, std::size_t size) noexcept
-    {
-        if (m_ptr != nullptr)
-        {
-            delete[] m_ptr;
-        }
-
-        m_ptr = other;
-        m_size = size;
-    }
-
-    //! Queries that object has buffer.
-    operator bool()
-    {
-        return m_ptr != nullptr;
-    }
-
-    //! Gets buffer pointer.
-    //! \return The pointer of buffer.
-    T* get()
-    {
-        return m_ptr;
-    }
-
-    //! Gets buffer pointer.
-    //! \return The pointer of buffer.
-    const T* get() const
-    {
-        return m_ptr;
-    }
-
-    //! Gets size of buffer.
-    //! \return The size of buffer.
-    std::size_t size() const
-    {
-        return m_size;
-    }
-
-    //! Gets the first element of buffer.
-    //! \return The first element of buffer.
-    T& operator*()
-    {
-        return *m_ptr;
-    }
-
-    //! Gets the first element of buffer.
-    //! \return The first element of buffer.
-    const T& operator*() const
-    {
-        return *m_ptr;
-    }
-
-    //! Gets the element with given \p idx from buffer.
-    //! \param idx The index of buffer.
-    //! \return The element of buffer at idx.
-    T& operator[](std::size_t idx)
-    {
-        return m_ptr[idx];
-    }
-
-    //! Gets the element with given \p idx from buffer.
-    //! \param idx The index of buffer.
-    //! \return The element of buffer at idx.
-    const T& operator[](std::size_t idx) const
-    {
-        return m_ptr[idx];
-    }
-
-    //! Check the equality of two buffers.
-    //! \param other Comparable object.
-    //! \return Equality about two buffers.
-    bool operator==(const SizedPtr& other) const
-    {
-        if (m_size != other.size())
-        {
-            return false;
-        }
-
-        for (std::size_t i = 0; i < m_size; ++i)
-        {
-            if (m_ptr[i] != other[i])
+            for (std::size_t j = 0; j < i; ++j)
             {
-                return false;
+                if (indices[j] == idx)
+                {
+                    flag = true;
+                    break;
+                }
             }
-        }
+        } while (flag);
 
-        return true;
+        results.emplace_back(list[idx]);
+        indices.emplace_back(idx);
     }
 
-    //! Check the inequality of two buffers.
-    //! \param other Comparable object.
-    //! \return Inequality about two buffers.
-    bool operator!=(const SizedPtr& other) const
-    {
-        return !operator==(other);
-    }
+    return results;
+}
 
-    //! Check if the buffer is empty.
-    //! \return true if buffer is empty, false otherwise.
-    bool operator==(std::nullptr_t) const
-    {
-        return m_ptr == nullptr;
-    }
-
-    //! Check if the buffer is not empty.
-    //! \return true if buffer is not empty, false otherwise.
-    bool operator!=(std::nullptr_t) const
-    {
-        return m_ptr != nullptr;
-    }
-
-    //! Gets begining iterator of the buffer.
-    //! \return The begining iterator.
-    iterator begin()
-    {
-        return m_ptr;
-    }
-
-    //! Gets constant begining iterator of the buffer.
-    //! \return The constant begining iterator.
-    const_iterator begin() const
-    {
-        return m_ptr;
-    }
-
-    //! Gets constant begining iterator of the buffer.
-    //! \return The constant begining iterator.
-    const_iterator cbegin() const
-    {
-        return m_ptr;
-    }
-
-    //! Gets ending iterator of the buffer.
-    //! \return The ending iterator.
-    iterator end()
-    {
-        return m_ptr + m_size;
-    }
-
-    //! Gets ending iterator of the buffer.
-    //! \return The ending iterator.
-    const_iterator end() const
-    {
-        return m_ptr + m_size;
-    }
-
-    //! Gets ending iterator of the buffer.
-    //! \return The ending iterator.
-    const_iterator cend() const
-    {
-        return m_ptr + m_size;
-    }
-
- private:
-    std::size_t m_size;
-    T* m_ptr;
-};
+//! Decodes Base64 based string.
+//! \param src Base64 based string.
+//! \return A unsigned char type container consists of decoded string.
+std::vector<unsigned char> DecodeBase64(const std::string& src);
 
 #endif  // ROSETTASTONE_UTILS_HPP

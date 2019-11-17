@@ -14,20 +14,15 @@ AddStackToTask::AddStackToTask(EntityType entityType) : ITask(entityType)
     // Do nothing
 }
 
-TaskID AddStackToTask::GetTaskID() const
-{
-    return TaskID::ADD_STACK_TO;
-}
-
-TaskStatus AddStackToTask::Impl(Player& player)
+TaskStatus AddStackToTask::Impl(Player* player)
 {
     switch (m_entityType)
     {
         case EntityType::HAND:
         {
-            for (auto& entity : player.GetGame()->taskStack.entities)
+            for (auto& entity : player->game->taskStack.playables)
             {
-                Generic::AddCardToHand(*entity->owner, entity);
+                Generic::AddCardToHand(entity->player, entity);
             }
             break;
         }

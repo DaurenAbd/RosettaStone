@@ -10,16 +10,11 @@
 #include <Rosetta/Cards/Cards.hpp>
 #include <Rosetta/Games/Game.hpp>
 #include <Rosetta/Tasks/SimpleTasks/DamageTask.hpp>
+#include <Rosetta/Zones/FieldZone.hpp>
 
 using namespace RosettaStone;
 using namespace SimpleTasks;
 using namespace TestUtils;
-
-TEST(DamageTask, GetTaskID)
-{
-    const DamageTask damage(EntityType::ENEMIES, 2);
-    EXPECT_EQ(damage.GetTaskID(), TaskID::DAMAGE);
-}
 
 TEST(DamageTask, Run)
 {
@@ -31,9 +26,9 @@ TEST(DamageTask, Run)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
 
-    Player& player1 = game.GetPlayer1();
+    Player* player1 = game.GetPlayer1();
 
     std::vector<Card> cards;
     cards.reserve(5);
@@ -47,7 +42,7 @@ TEST(DamageTask, Run)
     }
 
     DamageTask damage(EntityType::FRIENDS, 1);
-    damage.SetPlayer(&player1);
+    damage.SetPlayer(player1);
 
     Entity tempEntity;
 
@@ -57,7 +52,7 @@ TEST(DamageTask, Run)
     game.ProcessDestroyAndUpdateAura();
 
     EXPECT_EQ(result, TaskStatus::COMPLETE);
-    EXPECT_EQ(player1.GetFieldZone().GetCount(), 0);
+    EXPECT_EQ(player1->GetFieldZone()->GetCount(), 0);
 }
 
 TEST(DamageTask, SpellPower)
@@ -70,9 +65,10 @@ TEST(DamageTask, SpellPower)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
 
-    Player& player1 = game.GetPlayer1();
+    Player* player1 = game.GetPlayer1();
+    auto& p1Field = *(player1->GetFieldZone());
 
     std::vector<Card> cards;
     cards.reserve(5);
@@ -86,8 +82,8 @@ TEST(DamageTask, SpellPower)
     }
 
     DamageTask damage1(EntityType::FRIENDS, 1, true);
-    damage1.SetPlayer(&player1);
-    damage1.SetSource(player1.GetFieldZone()[0]);
+    damage1.SetPlayer(player1);
+    damage1.SetSource(p1Field[0]);
 
     TaskStatus result = damage1.Run();
     game.ProcessDestroyAndUpdateAura();
@@ -95,14 +91,14 @@ TEST(DamageTask, SpellPower)
     EXPECT_EQ(result, TaskStatus::COMPLETE);
     for (std::size_t i = 0; i < 5; ++i)
     {
-        EXPECT_EQ(player1.GetFieldZone()[i]->GetHealth(), 4);
+        EXPECT_EQ(p1Field[i]->GetHealth(), 4);
     }
 
-    player1.currentSpellPower = 1;
+    player1->currentSpellPower = 1;
 
     DamageTask damage2(EntityType::FRIENDS, 1, true);
-    damage2.SetPlayer(&player1);
-    damage2.SetSource(player1.GetFieldZone()[0]);
+    damage2.SetPlayer(player1);
+    damage2.SetSource(p1Field[0]);
 
     result = damage2.Run();
     game.ProcessDestroyAndUpdateAura();
@@ -110,6 +106,6 @@ TEST(DamageTask, SpellPower)
     EXPECT_EQ(result, TaskStatus::COMPLETE);
     for (std::size_t i = 0; i < 5; ++i)
     {
-        EXPECT_EQ(player1.GetFieldZone()[i]->GetHealth(), 2);
+        EXPECT_EQ(p1Field[i]->GetHealth(), 2);
     }
 }

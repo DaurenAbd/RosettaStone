@@ -23,18 +23,18 @@ TEST(Board, RefCopyFrom)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
 
-    auto board1 = new Board(game, curPlayer.playerType);
-    const auto board2 = new Board(game, opPlayer.playerType);
+    auto board1 = new Board(game, curPlayer->playerType);
+    const auto board2 = new Board(game, opPlayer->playerType);
 
     board1->RefCopyFrom(*board2);
     EXPECT_EQ(board1->GetViewType(), PlayerType::PLAYER2);
-    EXPECT_EQ(board1->GetCurrentPlayer().playerType, PlayerType::PLAYER1);
+    EXPECT_EQ(board1->GetCurrentPlayer()->playerType, PlayerType::PLAYER1);
 }
 
 TEST(Board, CreateView)
@@ -47,20 +47,20 @@ TEST(Board, CreateView)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
-    Player& opPlayer = game.GetOpponentPlayer();
+    Player* curPlayer = game.GetCurrentPlayer();
+    Player* opPlayer = game.GetOpponentPlayer();
 
-    curPlayer.GetHero()->SetAttack(2);
-    curPlayer.GetHero()->SetArmor(3);
+    curPlayer->GetHero()->SetAttack(2);
+    curPlayer->GetHero()->SetArmor(3);
 
-    opPlayer.GetHero()->SetAttack(1);
-    opPlayer.GetHero()->SetArmor(2);
+    opPlayer->GetHero()->SetAttack(1);
+    opPlayer->GetHero()->SetArmor(2);
 
-    const Board board1(game, curPlayer.playerType);
-    const Board board2(game, opPlayer.playerType);
+    const Board board1(game, curPlayer->playerType);
+    const Board board2(game, opPlayer->playerType);
 
     auto reducedBoard1 = board1.CreateView();
     EXPECT_EQ(reducedBoard1.GetMyHero().attack, 2);
@@ -71,7 +71,7 @@ TEST(Board, CreateView)
     EXPECT_EQ(reducedBoard2.GetMyHero().armor, 2);
 }
 
-TEST(Board, RevealInfoForSimulation)
+TEST(Board, RevealHiddenInfoForSimulation)
 {
     GameConfig config;
     config.player1Class = CardClass::WARRIOR;
@@ -81,13 +81,13 @@ TEST(Board, RevealInfoForSimulation)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
     game.step = Step::BEGIN_DRAW;
     game.nextStep = Step::MAIN_ACTION;
 
-    const Board board(game, game.GetCurrentPlayer().playerType);
-    EXPECT_EQ(game.step, board.RevealInfoForSimulation().step);
-    EXPECT_EQ(game.nextStep, board.RevealInfoForSimulation().nextStep);
+    const Board board(game, game.GetCurrentPlayer()->playerType);
+    EXPECT_EQ(game.step, board.RevealHiddenInfoForSimulation().step);
+    EXPECT_EQ(game.nextStep, board.RevealHiddenInfoForSimulation().nextStep);
 }

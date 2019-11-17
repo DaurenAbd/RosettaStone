@@ -10,9 +10,10 @@
 #ifndef ROSETTASTONE_TORCH_MCTS_ISIMULATION_POLICY_HPP
 #define ROSETTASTONE_TORCH_MCTS_ISIMULATION_POLICY_HPP
 
-#include <MCTS/Types.hpp>
+#include <MCTS/Commons/Types.hpp>
 
 #include <Rosetta/Actions/ActionValidChecker.hpp>
+#include <Rosetta/Enums/ActionEnums.hpp>
 #include <Rosetta/Views/Board.hpp>
 
 namespace RosettaTorch::MCTS
@@ -20,24 +21,26 @@ namespace RosettaTorch::MCTS
 //!
 //! \brief ChoiceGetter class.
 //!
+//! This class contains getter methods for action choices.
+//!
 class ChoiceGetter
 {
  public:
-    explicit ChoiceGetter(int choices) : m_choices(choices)
-    {
-        // Do nothing
-    }
+    //! Constructs choice iterator with given \p choices.
+    //! \param choices The number of choice.
+    explicit ChoiceGetter(int choices);
 
-    size_t Size() const
-    {
-        return static_cast<size_t>(m_choices);
-    }
+    //! Returns the size of choice.
+    //! \return The size of choice.
+    std::size_t Size() const;
 
-    int Get(size_t idx) const
-    {
-        return static_cast<int>(idx);
-    }
+    //! Returns the value of choice at \p idx.
+    //! \param idx The index of action choices.
+    //! \return The value of choice at \p idx.
+    int Get(std::size_t idx) const;
 
+    //! Runs \p functor on each choice of action choices.
+    //! \param functor A function to run for each choice.
     template <typename Functor>
     void ForEachChoice(Functor&& functor) const
     {
@@ -57,19 +60,37 @@ class ChoiceGetter
 //!
 //! \brief ISimulationPolicy class.
 //!
+//! This class is policy interface for simulation stage.
+//!
 class ISimulationPolicy
 {
  public:
+    //! Default virtual destructor.
     virtual ~ISimulationPolicy() = default;
 
+    //! Returns the flag indicates whether cutoff is enabled.
+    //! \return The flag indicates whether cutoff is enabled.
     virtual bool IsEnableCutoff() = 0;
 
-    virtual PlayState GetCutoffResult(const Board& board,
-                                      StateValue& stateValue) = 0;
+    //! Returns the result of game according to cutoff.
+    //! \param board The game board.
+    //! \param stateValue The value of game state.
+    //! \return The result of game according to cutoff.
+    virtual bool GetCutoffResult(const Board& board,
+                                 StateValue& stateValue) = 0;
 
+    //! Starts action according to the policy.
+    //! \param board The game board.
+    //! \param checker The action valid checker.
     virtual void StartAction(const Board& board,
                              const ActionValidChecker& checker) = 0;
 
+    //! Returns the choice according to the policy.
+    //! \param board The game board.
+    //! \param checker The action valid checker.
+    //! \param actionType The type of action.
+    //! \param getter The choice getter.
+    //! \return The choice according to the policy.
     virtual int GetChoice(const Board& board, const ActionValidChecker& checker,
                           ActionType actionType,
                           const ChoiceGetter& getter) = 0;

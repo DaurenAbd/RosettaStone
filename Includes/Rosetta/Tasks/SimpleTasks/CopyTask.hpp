@@ -24,19 +24,15 @@ class CopyTask : public ITask
     //! \param amount The number of entities to copy.
     //! \param addToStack The flag that indicates whether copied entity should
     //! be added to the stack.
-    //! \param toOpposite The flag that indicates the owner of copied entity.
+    //! \param toOpponent The flag that indicates the owner of copied entity.
     CopyTask(EntityType entityType, ZoneType zoneType, int amount = 1,
-             bool addToStack = false, bool toOpposite = false);
-
-    //! Returns task ID.
-    //! \return Task ID.
-    TaskID GetTaskID() const override;
+             bool addToStack = false, bool toOpponent = false);
 
  private:
     //! Processes task logic internally and returns meta data.
     //! \param player The player to run task.
     //! \return The result of task processing.
-    TaskStatus Impl(Player& player) override;
+    TaskStatus Impl(Player* player) override;
 
     //! Internal method of Clone().
     //! \return The cloned task.
@@ -45,7 +41,7 @@ class CopyTask : public ITask
     ZoneType m_zoneType = ZoneType::INVALID;
     int m_amount = 0;
     bool m_addToStack = false;
-    bool m_toOpposite = false;
+    bool m_toOpponent = false;
 };
 }  // namespace RosettaStone::SimpleTasks
 

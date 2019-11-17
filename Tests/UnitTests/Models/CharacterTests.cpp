@@ -8,7 +8,7 @@
 #include "gtest/gtest.h"
 
 #include <Rosetta/Games/Game.hpp>
-#include <Rosetta/Models/Character.hpp>
+#include <Rosetta/Zones/FieldZone.hpp>
 
 using namespace RosettaStone;
 using namespace TestUtils;
@@ -23,12 +23,12 @@ TEST(Character, Health)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
+    Player* curPlayer = game.GetCurrentPlayer();
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     PlayMinionCard(curPlayer, &card1);
@@ -45,6 +45,35 @@ TEST(Character, Health)
     EXPECT_EQ(curField[0]->isDestroyed, true);
 }
 
+TEST(Character, MaxHealth)
+{
+    GameConfig config;
+    config.player1Class = CardClass::ROGUE;
+    config.player2Class = CardClass::PALADIN;
+    config.startPlayer = PlayerType::PLAYER1;
+    config.doFillDecks = true;
+    config.autoRun = false;
+
+    Game game(config);
+    game.Start();
+    game.ProcessUntil(Step::MAIN_START);
+
+    Player* curPlayer = game.GetCurrentPlayer();
+
+    auto& curField = *(curPlayer->GetFieldZone());
+
+    auto card1 = GenerateMinionCard("minion1", 3, 6);
+    PlayMinionCard(curPlayer, &card1);
+    EXPECT_EQ(curField[0]->GetMaxHealth(), 6);
+
+    curField[0]->SetDamage(2);
+    EXPECT_EQ(curField[0]->GetMaxHealth(), 6);
+
+    curField[0]->SetMaxHealth(8);
+    EXPECT_EQ(curField[0]->GetHealth(), 6);
+    EXPECT_EQ(curField[0]->GetMaxHealth(), 8);
+}
+
 TEST(Character, SpellPower)
 {
     GameConfig config;
@@ -55,12 +84,12 @@ TEST(Character, SpellPower)
     config.autoRun = false;
 
     Game game(config);
-    game.StartGame();
+    game.Start();
     game.ProcessUntil(Step::MAIN_START);
 
-    Player& curPlayer = game.GetCurrentPlayer();
+    Player* curPlayer = game.GetCurrentPlayer();
 
-    auto& curField = curPlayer.GetFieldZone();
+    auto& curField = *(curPlayer->GetFieldZone());
 
     auto card1 = GenerateMinionCard("minion1", 3, 6);
     PlayMinionCard(curPlayer, &card1);

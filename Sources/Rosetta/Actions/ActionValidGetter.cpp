@@ -9,7 +9,8 @@
 
 #include <Rosetta/Actions/ActionValidGetter.hpp>
 #include <Rosetta/Actions/PlayCard.hpp>
-#include "Rosetta/Actions/Targeting.hpp"
+#include <Rosetta/Zones/FieldZone.hpp>
+#include <Rosetta/Zones/SecretZone.hpp>
 
 namespace RosettaStone
 {
@@ -21,83 +22,22 @@ ActionValidGetter::ActionValidGetter(const Game& game) : m_game(game)
 Hero* ActionValidGetter::GetHero(PlayerType playerType) const
 {
     const auto hero = (playerType == PlayerType::PLAYER1)
-                          ? m_game.GetPlayer1().GetHero()
-                          : m_game.GetPlayer2().GetHero();
+                          ? m_game.GetPlayer1()->GetHero()
+                          : m_game.GetPlayer2()->GetHero();
 
     return hero;
 }
 
-void ActionValidGetter::ForEachMinion(
-    PlayerType playerType, const std::function<void(Minion*)>& func) const
+bool ActionValidGetter::CanUseHeroPower()
 {
-    auto& fieldZone = (playerType == PlayerType::PLAYER1)
-                          ? m_game.GetPlayer1().GetFieldZone()
-                          : m_game.GetPlayer2().GetFieldZone();
+    auto& heroPower = m_game.GetCurrentPlayer()->GetHeroPower();
 
-    for (auto& minion : fieldZone.GetAll())
-    {
-        func(minion);
-    }
-}
-
-void ActionValidGetter::ForEachPlayableCard(
-    const std::function<bool(Entity*)>& func) const
-{
-    auto& handZone = m_game.GetCurrentPlayer().GetHandZone();
-
-    for (auto& card : handZone.GetAll())
-    {
-        if (!IsPlayable(card))
-        {
-            continue;
-        }
-
-        if (!func(card))
-        {
-            return;
-        }
-    }
-}
-
-void ActionValidGetter::ForEachAttacker(
-    const std::function<bool(Character*)>& func) const
-{
-    auto& fieldZone = m_game.GetCurrentPlayer().GetFieldZone();
-
-    for (auto& minion : fieldZone.GetAll())
-    {
-        if (!minion->CanAttack())
-        {
-            continue;
-        }
-
-        if (!func(minion))
-        {
-            return;
-        }
-    }
-
-    const auto& hero = m_game.GetCurrentPlayer().GetHero();
-    if (hero->CanAttack())
-    {
-        if (!func(hero))
-        {
-            return;
-        }
-    }
-}
-
-bool ActionValidGetter::CanUseHeroPower() const
-{
-    auto& heroPower = m_game.GetCurrentPlayer().GetHero()->heroPower;
-
-    if (!Generic::IsPlayableByPlayer(m_game.GetCurrentPlayer(), heroPower) ||
-        !Generic::IsPlayableByCardReq(heroPower))
+    if (!heroPower.IsPlayable())
     {
         return false;
     }
 
-    if (heroPower->IsExhausted())
+    if (heroPower.IsExhausted())
     {
         return false;
     }
@@ -105,11 +45,12 @@ bool ActionValidGetter::CanUseHeroPower() const
     return true;
 }
 
-bool ActionValidGetter::IsPlayable(Entity* entity) const
+bool ActionValidGetter::IsPlayable([[maybe_unused]] const Player* player,
+                                   Playable* entity) const
 {
     if (entity->card->GetCardType() == CardType::MINION)
     {
-        if (m_game.GetCurrentPlayer().GetFieldZone().IsFull())
+        if (m_game.GetCurrentPlayer()->GetFieldZone()->IsFull())
         {
             return false;
         }
@@ -117,14 +58,20 @@ bool ActionValidGetter::IsPlayable(Entity* entity) const
 
     if (entity->card->HasGameTag(GameTag::SECRET))
     {
-        if (m_game.GetCurrentPlayer().GetSecretZone().Exist(*entity))
+        if (m_game.GetCurrentPlayer()->GetSecretZone()->Exist(entity))
         {
             return false;
         }
     }
 
-    if (!Generic::IsPlayableByPlayer(m_game.GetCurrentPlayer(), entity) ||
-        !Generic::IsPlayableByCardReq(entity))
+    if (!entity->IsPlayable())
+    {
+        return false;
+    }
+
+    if (auto playReqs = entity->card->playRequirements;
+        (playReqs.find(PlayReq::REQ_TARGET_TO_PLAY) != playReqs.end()) &&
+        entity->GetValidPlayTargets().empty())
     {
         return false;
     }

@@ -6,6 +6,8 @@
 #include <Rosetta/Games/Game.hpp>
 #include <Rosetta/Tasks/SimpleTasks/DiscardTask.hpp>
 #include <Rosetta/Tasks/SimpleTasks/IncludeTask.hpp>
+#include <Rosetta/Zones/GraveyardZone.hpp>
+#include <Rosetta/Zones/HandZone.hpp>
 
 #include <effolkronium/random.hpp>
 
@@ -18,25 +20,20 @@ DiscardTask::DiscardTask(EntityType entityType) : ITask(entityType)
     // Do nothing
 }
 
-TaskID DiscardTask::GetTaskID() const
+TaskStatus DiscardTask::Impl(Player* player)
 {
-    return TaskID::DISCARD;
-}
-
-TaskStatus DiscardTask::Impl(Player& player)
-{
-    auto entities =
+    auto playables =
         IncludeTask::GetEntities(m_entityType, player, m_source, m_target);
 
-    for (auto& entity : entities)
+    for (auto& playable : playables)
     {
-        player.GetGame()->taskQueue.StartEvent();
+        player->game->taskQueue.StartEvent();
 
-        player.GetHandZone().Remove(*entity);
-        player.GetGraveyardZone().Add(*entity);
+        player->GetHandZone()->Remove(playable);
+        player->GetGraveyardZone()->Add(playable);
 
-        player.GetGame()->ProcessTasks();
-        player.GetGame()->taskQueue.EndEvent();
+        player->game->ProcessTasks();
+        player->game->taskQueue.EndEvent();
     }
 
     return TaskStatus::COMPLETE;

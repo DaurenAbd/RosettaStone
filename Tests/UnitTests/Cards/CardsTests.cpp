@@ -16,7 +16,7 @@ TEST(Cards, GetAllCards)
     const std::vector<Card*> cards = Cards::GetInstance().GetAllCards();
 
     ASSERT_FALSE(cards.empty());
-    EXPECT_EQ(cards.size(), 6717u);
+    EXPECT_EQ(cards.size(), 7735u);
 }
 
 TEST(Cards, FindCardByID)
@@ -25,6 +25,17 @@ TEST(Cards, FindCardByID)
     const Card* card2 = Cards::GetInstance().FindCardByID("");
 
     EXPECT_EQ(card1->id, "AT_001");
+    EXPECT_EQ(card2->id, "");
+}
+
+TEST(Cards, FindCardByDbfId)
+{
+    const Card* card1 = Cards::GetInstance().FindCardByDbfID(559);
+    const Card* card2 = Cards::GetInstance().FindCardByDbfID(-999);
+
+    EXPECT_EQ(card1->dbfID, 559);
+    EXPECT_EQ(card1->id, "EX1_116");
+    EXPECT_EQ(card2->dbfID, 0);
     EXPECT_EQ(card2->id, "");
 }
 
@@ -38,7 +49,6 @@ TEST(Cards, FindCardByRarity)
     std::vector<Card*> cards4 = instance.FindCardByRarity(Rarity::LEGENDARY);
     std::vector<Card*> cards5 = instance.FindCardByRarity(Rarity::FREE);
     std::vector<Card*> cards6 = instance.FindCardByRarity(Rarity::INVALID);
-    std::vector<Card*> cards7 = instance.FindCardByRarity(Rarity::UNKNOWN_6);
 
     EXPECT_EQ(Rarity::COMMON, cards1.front()->GetRarity());
     EXPECT_EQ(Rarity::RARE, cards2.front()->GetRarity());
@@ -46,14 +56,14 @@ TEST(Cards, FindCardByRarity)
     EXPECT_EQ(Rarity::LEGENDARY, cards4.front()->GetRarity());
     EXPECT_EQ(Rarity::FREE, cards5.front()->GetRarity());
     EXPECT_EQ(Rarity::INVALID, cards6.front()->GetRarity());
-    EXPECT_TRUE(cards7.empty());
 }
 
 TEST(Cards, FindCardByClass)
 {
     Cards& instance = Cards::GetInstance();
 
-    std::vector<Card*> cards1 = instance.FindCardByClass(CardClass::DEATHKNIGHT);
+    std::vector<Card*> cards1 =
+        instance.FindCardByClass(CardClass::DEATHKNIGHT);
     std::vector<Card*> cards2 = instance.FindCardByClass(CardClass::DREAM);
     std::vector<Card*> cards3 = instance.FindCardByClass(CardClass::DRUID);
     std::vector<Card*> cards4 = instance.FindCardByClass(CardClass::HUNTER);

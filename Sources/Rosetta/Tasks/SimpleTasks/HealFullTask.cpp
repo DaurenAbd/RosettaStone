@@ -13,20 +13,15 @@ HealFullTask::HealFullTask(EntityType entityType) : ITask(entityType)
     // Do nothing
 }
 
-TaskID HealFullTask::GetTaskID() const
+TaskStatus HealFullTask::Impl(Player* player)
 {
-    return TaskID::HEAL_FULL;
-}
-
-TaskStatus HealFullTask::Impl(Player& player)
-{
-    auto entities =
+    auto playables =
         IncludeTask::GetEntities(m_entityType, player, m_source, m_target);
 
-    for (auto& entity : entities)
+    for (auto& playable : playables)
     {
-        auto character = dynamic_cast<Character*>(entity);
-        character->TakeFullHeal(*m_source);
+        auto character = dynamic_cast<Character*>(playable);
+        character->TakeFullHeal(dynamic_cast<Playable*>(m_source));
     }
 
     return TaskStatus::COMPLETE;

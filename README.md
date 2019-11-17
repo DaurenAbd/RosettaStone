@@ -53,9 +53,9 @@ RosettaStone is Hearthstone simulator using C++ with some reinforcement learning
 
 ### Basic & Classic
 
-  * **100% Basic (133 of 133 Cards)**
-  * 53% Classic (126 of 237 Cards)
-  * 32% Hall of Fame (7 of 22 Cards)
+  * 98% Basic (131 of 133 Cards)
+  * 73% Classic (179 of 245 Cards)
+  * 37% Hall of Fame (9 of 24 Cards)
 
 ### Adventures
 
@@ -66,6 +66,7 @@ RosettaStone is Hearthstone simulator using C++ with some reinforcement learning
 
 ### Expansions
 
+  * 0% Saviors of Uldum (0 of 135 cards)
   * 0% Rise of Shadows (0 of 135 cards)
   * 0% Rastakhan's Rumble (0 of 135 Cards)
   * 0% The Boomsday Project (0 of 135 Cards)
@@ -212,23 +213,28 @@ RosettaStone is based on part of Sabberstone's code
 
 Copyright (c) 2017-2019 SabberStone Team, darkfriend77 & rnilva
 
+RosettaStone is based on part of hearthstone-ai's code
+
+Copyright (c) 2017 Peter Shih, peter1591
+
 RosettaStone, Hearthstone simulator using C++ with some reinforcement learning
 
-Copyright (C) 2017-2019 RosettaStone Team
+Copyright (c) 2017-2019 RosettaStone Team
 
   * [Chris Ohk](http://www.github.com/utilForever)
   * [Youngjoong Kim](https://github.com/revsic)
   * [Seunghyun Jeon](https://github.com/FuZer)
-  * [Sunghyun Kim](https://github.com/devArtoria)
   * [Hyeongchan Kim](https://github.com/kozistr)
   * [Yoohan Park](https://github.com/CreatorSeraph)
-  * [Junghyun Choi](https://github.com/junghyun397)
-  * [Inwoo Tae](https://github.com/taeInwoo)
-  * [Jeongho Park](https://github.com/Park-JeongHo)
+  * [Hyeonsu Kim](https://github.com/git-rla)
+  * [Junyeong Park](https://github.com/JYPark09)
+  * [Sunghwan Kim](https://github.com/FYLSunghwan)
+  * [Kyounguk Chae](https://github.com/ShyRoute)
+  * [Junryung Ju](https://github.com/ArtBlnd)
 
 RealStone, "Real" Hearthstone hardware using Arduino
 
-Copyright (C) 2018-2019 RealStone Team
+Copyright (c) 2018-2019 RealStone Team
 
   * Taehyeon Song
   * Doun Lee

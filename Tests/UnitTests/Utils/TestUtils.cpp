@@ -8,46 +8,13 @@
 #include "gtest/gtest.h"
 
 #include <Rosetta/Models/Enchantment.hpp>
-
-#include <random>
+#include <Rosetta/Models/Minion.hpp>
+#include <Rosetta/Models/Player.hpp>
+#include <Rosetta/Zones/FieldZone.hpp>
+#include <Rosetta/Zones/GraveyardZone.hpp>
 
 namespace TestUtils
 {
-SizedPtr<int> GenerateRandomBuffer(std::size_t maximumSize)
-{
-    std::random_device rd;
-    std::default_random_engine gen(rd());
-
-    SizedPtr<int> sizedPtr(gen() % maximumSize + 1);
-    for (std::size_t i = 0; i < sizedPtr.size(); ++i)
-    {
-        sizedPtr[i] = gen() % 255;
-    }
-
-    return sizedPtr;
-}
-
-TaskMetaTrait GenerateRandomTrait()
-{
-    std::random_device rd;
-    std::default_random_engine gen(rd());
-
-    const auto sizeTaskID = static_cast<int>(TaskID::NUM_TASK_ID);
-    const auto sizeTaskStatus = static_cast<int>(TaskStatus::NUM_TASK_STATUS);
-
-    const TaskID taskID = static_cast<TaskID>(gen() % sizeTaskID);
-    const auto taskStatus = static_cast<TaskStatus>(gen() % sizeTaskStatus);
-    const std::size_t userID = gen() % 2;
-
-    const TaskMetaTrait randomTrait(taskID, taskStatus, userID);
-    return randomTrait;
-}
-
-TaskMeta GenerateRandomTaskMeta()
-{
-    return TaskMeta(GenerateRandomTrait(), GenerateRandomBuffer());
-}
-
 Card GenerateMinionCard(std::string&& id, int attack, int health)
 {
     Card card;
@@ -83,31 +50,31 @@ Card GenerateEnchantmentCard(std::string&& id)
     return card;
 }
 
-void PlayMinionCard(Player& player, Card* card)
+void PlayMinionCard(Player* player, Card* card)
 {
-    FieldZone& fieldZone = player.GetFieldZone();
+    FieldZone& fieldZone = *(player->GetFieldZone());
     const std::map<GameTag, int> tags;
 
     const auto minion = new Minion(player, card, tags);
-    fieldZone.Add(*minion);
-    fieldZone[minion->GetZonePosition()]->owner = &player;
+    fieldZone.Add(minion);
+    fieldZone[minion->GetZonePosition()]->player = player;
 }
 
-void PlayWeaponCard(Player& player, Card* card)
+void PlayWeaponCard(Player* player, Card* card)
 {
     const std::map<GameTag, int> tags;
 
     const auto weapon = new Weapon(player, card, tags);
-    player.GetHero()->AddWeapon(*weapon);
+    player->GetHero()->AddWeapon(*weapon);
 }
 
-void PlayEnchantmentCard(Player& player, Card* card, Entity* target)
+void PlayEnchantmentCard(Player* player, Card* card, Entity* target)
 {
-    GraveyardZone& graveyardZone = player.GetGraveyardZone();
+    GraveyardZone& graveyardZone = *(player->GetGraveyardZone());
     const std::map<GameTag, int> tags;
 
     const auto enchantment = new Enchantment(player, card, tags, target);
-    graveyardZone.Add(*enchantment);
+    graveyardZone.Add(enchantment);
 }
 
 void ExpectCardEqual(const Card& card1, const Card& card2)

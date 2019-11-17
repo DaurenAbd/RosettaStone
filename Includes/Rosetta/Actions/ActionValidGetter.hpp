@@ -11,32 +11,106 @@
 #define ROSETTASTONE_ACTION_VALID_GETTER_HPP
 
 #include <Rosetta/Games/Game.hpp>
-
-#include <functional>
+#include <Rosetta/Zones/FieldZone.hpp>
+#include <Rosetta/Zones/HandZone.hpp>
 
 namespace RosettaStone
 {
 //!
 //! \brief ActionValidGetter class.
 //!
+//! This class contains several methods that checks target is valid,
+//! card is playable, hero/minion can attack and player can use hero power.
+//!
 class ActionValidGetter
 {
  public:
+    //! Constructs action valid getter with given \p game.
+    //! \param game The game context.
     explicit ActionValidGetter(const Game& game);
 
+    //! Returns the hero of the player.
+    //! \param playerType The player type to separate players.
+    //! \return The hero of the player.
     Hero* GetHero(PlayerType playerType) const;
 
-    void ForEachMinion(PlayerType playerType,
-                       const std::function<void(Minion*)>& func) const;
+    //! Runs \p functor on each minion of the player.
+    //! \param playerType The player type to separate players.
+    //! \param functor A function to run for each minion.
+    template <typename Functor>
+    void ForEachMinion(PlayerType playerType, Functor&& functor) const
+    {
+        auto fieldZone = (playerType == PlayerType::PLAYER1)
+                             ? m_game.GetPlayer1()->GetFieldZone()
+                             : m_game.GetPlayer2()->GetFieldZone();
 
-    void ForEachPlayableCard(const std::function<bool(Entity*)>& func) const;
+        for (auto& minion : fieldZone->GetAll())
+        {
+            functor(minion);
+        }
+    }
 
-    void ForEachAttacker(const std::function<bool(Character*)>& func) const;
+    //! Checks a card is playable and runs \p functor on each playable card.
+    //! \param functor A function to run for each playable card.
+    template <typename Functor>
+    void ForEachPlayableCard(Functor&& functor) const
+    {
+        auto handZone = m_game.GetCurrentPlayer()->GetHandZone();
 
-    bool CanUseHeroPower() const;
+        for (auto& card : handZone->GetAll())
+        {
+            if (!IsPlayable(m_game.GetCurrentPlayer(), card))
+            {
+                continue;
+            }
+
+            if (!functor(card))
+            {
+                return;
+            }
+        }
+    }
+
+    //! Checks a character can attack and runs \p functor on each attacker.
+    //! \param functor A function to run for each attacker.
+    template <typename Functor>
+    void ForEachAttacker(Functor&& functor) const
+    {
+        auto fieldZone = m_game.GetCurrentPlayer()->GetFieldZone();
+
+        for (auto& minion : fieldZone->GetAll())
+        {
+            if (!minion->CanAttack())
+            {
+                continue;
+            }
+
+            if (!functor(minion))
+            {
+                return;
+            }
+        }
+
+        const auto& hero = m_game.GetCurrentPlayer()->GetHero();
+        if (hero->CanAttack())
+        {
+            if (!functor(hero))
+            {
+                return;
+            }
+        }
+    }
+
+    //! Returns the flag indicates whether the player can use hero power.
+    //! \return the flag indicates whether the player can use hero power.
+    bool CanUseHeroPower();
 
  private:
-    bool IsPlayable(Entity* entity) const;
+    //! Returns the flag indicates whether the card is playable.
+    //! \param player The player context.
+    //! \param entity The target entity.
+    //! \return the flag indicates whether the card is playable.
+    bool IsPlayable(const Player* player, Playable* entity) const;
 
     const Game& m_game;
 };

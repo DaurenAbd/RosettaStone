@@ -7,10 +7,18 @@
 #ifndef ROSETTASTONE_CONSTANTS_HPP
 #define ROSETTASTONE_CONSTANTS_HPP
 
+#include <string>
+
 namespace RosettaStone
 {
 //! RosettaStone version.
 constexpr float VERSION = 0.4f;
+
+//! Deck code version.
+constexpr int DECK_CODE_VERSION = 1;
+
+//! Invalid card ID.
+const std::string INVALID_CARD_ID = "INVALID";
 
 //! The number of player class.
 //! \note Druid, Hunter, Mage, Paladin, Priest, Rogue, Shaman, Warlock, Warrior
@@ -42,14 +50,6 @@ constexpr int MAX_HAND_SIZE = 10;
 
 //! The maximum number of secrets in secret zone.
 constexpr int MAX_SECERT_SIZE = 5;
-
-//! Enumeration that represents the player.
-enum class PlayerType
-{
-    RANDOM,   //!< The random player.
-    PLAYER1,  //!< The first player.
-    PLAYER2,  //!< The second player.
-};
 
 //! The number of menus in main phase.
 //! \note We will refactor it soon.

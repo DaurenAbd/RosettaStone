@@ -14,12 +14,7 @@ WeaponTask::WeaponTask(std::string cardID) : m_cardID(std::move(cardID))
     // Do nothing
 }
 
-TaskID WeaponTask::GetTaskID() const
-{
-    return TaskID::WEAPON;
-}
-
-TaskStatus WeaponTask::Impl(Player& player)
+TaskStatus WeaponTask::Impl(Player* player)
 {
     Card* weaponCard = Cards::FindCardByID(m_cardID);
     if (weaponCard->id.empty())
@@ -27,9 +22,9 @@ TaskStatus WeaponTask::Impl(Player& player)
         return TaskStatus::STOP;
     }
 
-    if (player.GetHero()->HasWeapon())
+    if (player->GetHero()->HasWeapon())
     {
-        player.GetHero()->weapon->Destroy();
+        player->GetWeapon().Destroy();
     }
 
     const auto weapon =

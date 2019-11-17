@@ -6,6 +6,9 @@
 #ifndef ROSETTASTONE_EFFECTS_HPP
 #define ROSETTASTONE_EFFECTS_HPP
 
+#include <Rosetta/Enchants/Attrs/Atk.hpp>
+#include <Rosetta/Enchants/Attrs/Cost.hpp>
+#include <Rosetta/Enchants/Attrs/Health.hpp>
 #include <Rosetta/Enchants/Effect.hpp>
 
 namespace RosettaStone
@@ -19,78 +22,116 @@ class Effects
 {
  public:
     //! Creates effect that increases attack by \p n.
-    static Effect* AttackN(int n)
+    //! \param n A value indicating how much increases.
+    //! \return A dynamically allocated Effect instance.
+    static IEffect* AttackN(int n)
     {
-        return new Effect(GameTag::ATK, EffectOperator::ADD, n);
+        return Atk::Effect(EffectOperator::ADD, n);
     }
 
     //! Creates effect that increases health by \p n.
-    static Effect* HealthN(int n)
+    //! \param n A value indicating how much increases.
+    //! \return A dynamically allocated Effect instance.
+    static IEffect* HealthN(int n)
     {
-        return new Effect(GameTag::HEALTH, EffectOperator::ADD, n);
+        return Health::Effect(EffectOperator::ADD, n);
+    }
+
+    //! Creates effect that increases durability by \p n.
+    //! \param n A value indicating how much increases.
+    //! \return A dynamically allocated Effect instance.
+    static IEffect* DurabilityN(int n)
+    {
+        return new Effect(GameTag::DURABILITY, EffectOperator::ADD, n);
+    }
+
+    //! Creates effect that increases spell power by \p n.
+    //! \param n A value indicating how much increases.
+    //! \return A dynamically allocated Effect instance.
+    static IEffect* SpellPowerN(int n)
+    {
+        return new Effect(GameTag::SPELLPOWER, EffectOperator::ADD, n);
     }
 
     //! Creates effect that increases attack and health by \p n.
-    static std::vector<Effect*> AttackHealthN(int n)
+    //! \param n A value indicating how much increases.
+    //! \return A dynamically allocated Effects instance.
+    static std::vector<IEffect*> AttackHealthN(int n)
     {
         return { AttackN(n), HealthN(n) };
     }
 
     //! Creates effect that sets attack to \p n.
-    static Effect* SetAttack(int n)
+    //! \param n The value to set.
+    //! \return A dynamically allocated Effect instance.
+    static IEffect* SetAttack(int n)
     {
-        return new Effect(GameTag::ATK, EffectOperator::SET, n);
+        return Atk::Effect(EffectOperator::SET, n);
     }
 
     //! Creates effect that sets max health to \p n.
-    static Effect* SetMaxHealth(int n)
+    //! \param n The value to set.
+    //! \return A dynamically allocated Effect instance.
+    static IEffect* SetMaxHealth(int n)
     {
-        return new Effect(GameTag::HEALTH, EffectOperator::SET, n);
+        return Health::Effect(EffectOperator::SET, n);
     }
 
     //! Creates effect that sets attack and health to \p n.
-    static std::vector<Effect*> SetAttackHealth(int n)
+    //! \param n The value to set.
+    //! \return A dynamically allocated Effects instance.
+    static std::vector<IEffect*> SetAttackHealth(int n)
     {
         return { SetAttack(n), SetMaxHealth(n) };
     }
 
-    //! Creates effect that reduces cost by \p n.
-    static Effect* ReduceCost(int n)
+    //! Creates effect that adds cost by \p n.
+    //! \param n A value indicating how much add.
+    //! \return A dynamically allocated Effect instance.
+    static IEffect* AddCost(int n)
     {
-        return new Effect(GameTag::COST, EffectOperator::SUB, n);
+        return Cost::Effect(EffectOperator::ADD, n);
+    }
+
+    //! Creates effect that reduces cost by \p n.
+    //! \param n A value indicating how much reduce.
+    //! \return A dynamically allocated Effect instance.
+    static IEffect* ReduceCost(int n)
+    {
+        return Cost::Effect(EffectOperator::SUB, n);
     }
 
     //! A minion ability which forces the opposing player to direct any
     //! melee attacks toward enemy targets with this ability.
-    inline static Effect* Taunt =
+    inline static IEffect* Taunt =
         new Effect(GameTag::TAUNT, EffectOperator::SET, 1);
 
     //! A minion ability that causes any minion damaged by them to be destroyed.
-    inline static Effect* Poisonous =
+    inline static IEffect* Poisonous =
         new Effect(GameTag::POISONOUS, EffectOperator::SET, 1);
 
     //! An ability which causes a minion to ignore the next damage it receives.
-    inline static Effect* DivineShield =
+    inline static IEffect* DivineShield =
         new Effect(GameTag::DIVINE_SHIELD, EffectOperator::SET, 1);
 
     //! An ability which allows a character to attack twice per turn.
-    inline static Effect* Windfury =
+    inline static IEffect* Windfury =
         new Effect(GameTag::WINDFURY, EffectOperator::SET, 1);
 
     //! An ability allowing a minion to attack the same turn it is summoned or
     //! brought under a new player's control.
-    inline static Effect* Charge =
+    inline static IEffect* Charge =
         new Effect(GameTag::CHARGE, EffectOperator::SET, 1);
 
     //! A minion ability which prevents that minion from being the target of
     //! enemy attacks, spells and effects until they attack.
-    inline static Effect* Stealth =
+    inline static IEffect* Stealth =
         new Effect(GameTag::STEALTH, EffectOperator::SET, 1);
 
     //! An ability that prevents characters from receiving any damage, and
     //! prevents the opponent from specifically targeting them with any type of
     //! action.
-    inline static Effect* Immune =
+    inline static IEffect* Immune =
         new Effect(GameTag::IMMUNE, EffectOperator::SET, 1);
 };
 }  // namespace RosettaStone

@@ -11,40 +11,80 @@
 #define ROSETTASTONE_ACTION_PARAMS_HPP
 
 #include <Rosetta/Actions/ActionChoices.hpp>
-#include <Rosetta/Actions/ActionType.hpp>
 #include <Rosetta/Actions/ActionValidChecker.hpp>
+#include <Rosetta/Enums/ActionEnums.hpp>
 
 namespace RosettaStone
 {
 //!
 //! \brief ActionParams class.
 //!
+//! This class contains several parameter methods for the action such as choose
+//! main operation/hand card and get specified target/attacker/number and so on.
+//!
 class ActionParams
 {
  public:
+    //! Virtual default destructor.
     virtual ~ActionParams() = default;
 
-    void Initialize(const Game& game);
-    void Initialize(const ActionValidGetter& getter);
+    //! Initializes action params by running ActionValidChecker::Check() method.
+    //! \param game The game context.
+    virtual void Initialize(const Game& game);
 
+    //! Initializes action params by running ActionValidChecker::Check() method.
+    //! \param getter The action valid getter.
+    void Initialize(ActionValidGetter& getter);
+
+    //! Initializes action params by running ActionValidChecker::Check() method.
+    //! \param getter The action valid getter.
+    void Initialize(ActionValidGetter&& getter);
+
+    //! Returns the action valid checker.
+    //! \return The action valid checker.
     const ActionValidChecker& GetChecker() const;
 
-    MainOpType ChooseMainOp();
+    //! Returns the main operation using the action valid checker.
+    //! \return The chosen main operation.
+    virtual MainOpType ChooseMainOp();
 
-    size_t GetMinionPutLocation(int minions);
+    //! Returns the location of minion to put.
+    //! \param minions The number of minions in field zone.
+    //! \return The chosen location of minion.
+    virtual std::size_t GetMinionPutLocation(int minions);
 
-    Character* GetSpecifiedTarget(const std::vector<Character*>& targets);
+    //! Returns the specified target.
+    //! \param targets A list of targets that can specify.
+    //! \return The chosen specified target.
+    virtual Character* GetSpecifiedTarget(
+        const std::vector<Character*>& targets);
 
-    size_t ChooseOne(const std::vector<size_t>& cards);
+    //! Returns a card from a list of choice cards.
+    //! \param cards A list of choice cards.
+    //! \return A chosen card from a list of choice cards.
+    virtual std::size_t ChooseOne(const std::vector<std::size_t>& cards);
 
-    Entity* ChooseHandCard();
+    //! Returns a card in hand zone that is playable.
+    //! \return A chosen card in hand zone that is playable.
+    virtual Playable* ChooseHandCard();
 
-    Character* GetAttacker();
+    //! Returns a minion card in field zone that can attack.
+    //! \return A chosen minion card in field zone that can attack.
+    virtual Character* GetAttacker();
 
-    virtual size_t GetNumber(ActionType actionType, ActionChoices& choices) = 0;
+    //! Returns the number using \p actionType and \p choices.
+    //! \param actionType The action type.
+    //! \param choices The action choices.
+    //! \return The chosen number using action type and action choices.
+    virtual std::size_t GetNumber(ActionType actionType,
+                                  ActionChoices& choices) = 0;
 
- private:
-    size_t GetNumber(ActionType actionType, size_t exclusiveMax);
+ protected:
+    //! Returns the number using \p actionType and \p max.
+    //! \param actionType The action type.
+    //! \param max The maximum value of the range.
+    //! \return The chosen number using action type and maximum value.
+    std::size_t GetNumber(ActionType actionType, std::size_t max);
 
     ActionValidChecker m_checker;
 };

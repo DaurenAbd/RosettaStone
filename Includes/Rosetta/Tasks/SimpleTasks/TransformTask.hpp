@@ -23,15 +23,11 @@ class TransformTask : public ITask
     //! \param cardID A new card ID to transform.
     explicit TransformTask(EntityType entityType, std::string cardID);
 
-    //! Returns task ID.
-    //! \return Task ID.
-    TaskID GetTaskID() const override;
-
  private:
     //! Processes task logic internally and returns meta data.
     //! \param player The player to run task.
     //! \return The result of task processing.
-    TaskStatus Impl(Player& player) override;
+    TaskStatus Impl(Player* player) override;
 
     //! Internal method of Clone().
     //! \return The cloned task.

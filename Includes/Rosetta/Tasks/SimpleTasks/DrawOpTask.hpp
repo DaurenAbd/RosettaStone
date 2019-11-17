@@ -23,15 +23,11 @@ class DrawOpTask : public ITask
     //! \param amount The amount to draw card.
     explicit DrawOpTask(int amount);
 
-    //! Returns task ID.
-    //! \return Task ID.
-    TaskID GetTaskID() const override;
-
  private:
     //! Processes task logic internally and returns meta data.
     //! \param player The player to run task.
     //! \return The result of task processing.
-    TaskStatus Impl(Player& player) override;
+    TaskStatus Impl(Player* player) override;
 
     //! Internal method of Clone().
     //! \return The cloned task.

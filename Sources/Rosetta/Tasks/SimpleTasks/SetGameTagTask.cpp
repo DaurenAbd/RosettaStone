@@ -14,30 +14,14 @@ SetGameTagTask::SetGameTagTask(EntityType entityType, GameTag tag, int amount)
     // Do nothing
 }
 
-TaskID SetGameTagTask::GetTaskID() const
+TaskStatus SetGameTagTask::Impl(Player* player)
 {
-    return TaskID::SET_GAME_TAG;
-}
-
-TaskStatus SetGameTagTask::Impl(Player& player)
-{
-    auto entities =
+    auto playables =
         IncludeTask::GetEntities(m_entityType, player, m_source, m_target);
 
-    for (auto& entity : entities)
+    for (auto& playable : playables)
     {
-        entity->SetGameTag(m_gameTag, m_amount);
-
-        // Process windfury
-        if (m_gameTag == GameTag::WINDFURY && m_amount == 1)
-        {
-            auto m = dynamic_cast<Minion*>(entity);
-            if (m != nullptr && m->GetNumAttacksThisTurn() == 1 &&
-                m->IsExhausted())
-            {
-                m->SetExhausted(false);
-            }
-        }
+        playable->SetGameTag(m_gameTag, m_amount);
     }
 
     return TaskStatus::COMPLETE;
